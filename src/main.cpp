@@ -19,6 +19,8 @@
  * Created on October 28, 2009, 2:29 PM
  */
 
+#include <ros/ros.h>
+
 #include <stdlib.h>
 #include <vector>
 #include "fuzzylite/FuzzyLite.h"
@@ -26,8 +28,14 @@
 #include <iomanip>
 
 int main(int argc, char** argv) {
+	ros::init(argc, argv, "collisionAvoidance");
+	ros::NodeHandle n;
+	
+ROS_INFO("it worked take2");
+
     FL_LOG(std::fixed << std::setprecision(3));
     fl::Test::main(argc, argv);
+
 
     return (EXIT_SUCCESS);
 }
