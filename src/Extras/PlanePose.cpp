@@ -1,6 +1,7 @@
 
 #include "ros/ros.h"
 #include "AU_UAV_ROS/standardFuncs.h"
+#include "AU_UAV_ROS/PlanePose.h"
 
 //Define a waypoint
 struct waypoint
@@ -12,7 +13,7 @@ struct waypoint
 
 
 //default constructor
-AU_UAV_ROS::PlanePose::PlanePose(){
+AU_UAV_ROS::PlanePose::PlanePose(void){
 	this->id = 0;
 	this->x = 0;
 	this->y = 0;

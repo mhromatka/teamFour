@@ -1,7 +1,7 @@
 /*
-Implementation of standardFuncs.h.  For information on how to use these functions, visit standardFuncs.h.  Comments in this file
-are related to implementation, not usage.
-*/
+ Implementation of standardFuncs.h.  For information on how to use these functions, visit standardFuncs.h.  Comments in this file
+ are related to implementation, not usage.
+ */
 
 #include <cmath>
 #include <stdlib.h>
@@ -19,45 +19,32 @@ are related to implementation, not usage.
 #define DEGREES_TO_RADIANS (M_PI/180.0)
 #define RADIANS_TO_DEGREES (180.0/M_PI)
 
-//Define a waypoint
-struct waypoint
-{
-	double latitude;
-	double longitude;
-	double altitude;
-};
-
-//Origin refers to the top/left-most point in the simulated area
-//long = WEST_MOST_LONGITUDE
-//lat = NORTH_MOST_LATITUDE
-struct waypoint origin;
-
 //This function will return the plane's XYZ coordinates (the same coordinates being published to the RVIZ simulator)
 //This function DOES take the earth's curvature into consideration
 //The function uses the "getActualDistance" function with the top/left-most point and the plane's lat/long/alt
-AU_UAV_ROS::waypoint getPlaneXYZ(AU_UAV_ROS::waypoint planePosition){
-	//set up verticies of triangle
+AU_UAV_ROS::waypoint getPlaneDistance(AU_UAV_ROS::waypoint planePosition){
+	AU_UAV_ROS::waypoint origin;
+	
 	origin.latitude=NORTH_MOST_LATITUDE;
 	origin.longitude=WEST_MOST_LONGITUDE;
-
-	struct waypoint northsouthpoint;
-	northsouthpoint.latitude=msg->currentLatitude;
+	origin.altitude=0.0;
+    
+	AU_UAV_ROS::waypoint northsouthpoint;
+	northsouthpoint.latitude=planePosition.latitude;
 	northsouthpoint.longitude=WEST_MOST_LONGITUDE;
-	struct waypoint eastwestpoint;
+    
+	AU_UAV_ROS::waypoint eastwestpoint;
 	eastwestpoint.latitude=NORTH_MOST_LATITUDE;
-	eastwestpoint.longitude=msg->currentLongitude;
-
-	double x = getActualDistance(origin,eastwestpoint);
-	double y = getActualDistance(origin,northsouthpoint);
-	double z = planePosition.altitude;
-
-	struct waypoint posInMeters;
-	posInMeters.latitude = x;
-	posInMeters.longitude = y;
-	posInMeters.altitude = z; 
-
-	return posInMeters;
+	eastwestpoint.longitude=planePosition.longitude;
+    
+	AU_UAV_ROS::waypoint planeXYZ;
+	planeXYZ.latitude = getActualDistance(origin,eastwestpoint);
+	planeXYZ.longitude = -getActualDistance(origin,northsouthpoint);
+	planeXYZ.altitude = planePosition.altitude;
+    
+	return planeXYZ;
 }
+
 //This function will return the actual distance between two points in space (lat/long/alt)
 //This function DOES take the earth's curvature into consideration
 double getActualDistance(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second)
@@ -84,15 +71,24 @@ double getActualDistance(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second
 //This is an estimation of plane heading based on the position heading from a point a time t and time t-1
 //waypoints must be in meters
 //A zero degree heading points directly North (and East is 90 degrees and West is -90 degrees to keep in [-180,180] range)
-double getNewHeading(struct waypoint first, struct waypoint second)
+double getNewHeading(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second)
 {
+	first.latitude=0;
+	first.longitude=0;
+    
+	second.latitude=0;
+	second.longitude=1;
+    
 	double deltaX = second.latitude - first.latitude;
-	double deltaY = second.longitude - second.longitude;
+	double deltaY = second.longitude - first.longitude;
 	double heading = atan(deltaX/deltaY);
-	if (deltaX >= 0)
-		return heading*DEGREES_TO_RADIANS;
-	else
-		return -heading*DEGREES_TO_RADIANS;
+	heading = (heading*RADIANS_TO_DEGREES);
+	if (deltaX <= 0)
+	{
+		heading = -heading;
+	}	
+	printf("Heading is %f  ", heading);
+	return heading;
 }
 
 double getRelativeBearingAngle(double myHeading, double theirHeading)
@@ -107,56 +103,86 @@ double manipulateAngle(double angle){
 		/* decrease angle by one 360 degree cycle */
 		angle-=360;
 	}
-
+    
 	while (angle < -180){
 		/* increase angle by one 360 degree cycle cycle */
 		angle+=360;
 	}
-
+    
+	while (angle == -0){
+		/* increase angle by one 360 degree cycle cycle */
+		angle=0;
+	}
+    
 	return angle;
 }
 
 
-/*
-double getPlaneDist(int planeID){
-//	ros::Rate rate(1.0);
-	//create TF listener here
-	tf::TransformListener listener;
-	tf::StampedTransform transform;
-//	rate.sleep();
-	try{
-		listener.lookupTransform("/0", "/world", ros::Time::now(), transform);
-
-//		ros::Time now = ros::Time::now();
-//		listener.waitForTransform("/0", "/world", now, ros::Duration(0.7);
-//		listener.lookupTransform("/0", "/world", now, transform);
-	}
-	catch (tf::TransformException ex){
-		ROS_ERROR("%s",ex.what());
-	}
-
-	//return distance here
-	double distance;
-	distance = sqrt(pow(transform.getOrigin().x(),2) + pow(transform.getOrigin().y(),2) + pow(transform.getOrigin().z(),2));
-	//distance = 2.0;	
-	return distance;
-
-	//ROS_INFO("x is ", transform.getOrigin().x);
-	//ROS_INFO("y is ", transform.getOrigin().y);
-	//ROS_INFO("z is ", transform.getOrigin().z);
-
+/* 
+ Returns the Cardinal angle between two points of latitude and longitude in degrees.  The starting point is given
+ by lat1 and long1 (the first two parameters), and the final point is given by lat2 and long2 (the final two parameters).
+ The value returned is on the interval [-180, 180].
+ */
+double findAngle(double lat1, double long1, double lat2, double long2){
+	double lonDiff = 0.0, angle = 0.0;
+	double x = 0.0, y = 0.0;
+    
+	/* Convert latitudes to radians */
+	lat2 *= DEGREE_TO_RAD;
+	lat1 = lat1 * DEGREE_TO_RAD;
+    
+	lonDiff = (long2 - long1) * DEGREE_TO_RAD; /* convert difference in longitude to radians */
+	
+	/* Haversine math: see http://www.movable-type.co.uk/scripts/latlong.html for more information */
+	y = sin(lonDiff)*cos(lat2);
+	x = cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lonDiff);
+    
+	angle = atan2(y, x) * 180/PI;
+    
+	//Angle will be in degrees.
+	return angle;
 }
-*/
+
+/*
+ double getPlaneDist(int planeID){
+ //	ros::Rate rate(1.0);
+ //create TF listener here
+ tf::TransformListener listener;
+ tf::StampedTransform transform;
+ //	rate.sleep();
+ try{
+ listener.lookupTransform("/0", "/world", ros::Time::now(), transform);
+ 
+ //		ros::Time now = ros::Time::now();
+ //		listener.waitForTransform("/0", "/world", now, ros::Duration(0.7);
+ //		listener.lookupTransform("/0", "/world", now, transform);
+ }
+ catch (tf::TransformException ex){
+ ROS_ERROR("%s",ex.what());
+ }
+ 
+ //return distance here
+ double distance;
+ distance = sqrt(pow(transform.getOrigin().x(),2) + pow(transform.getOrigin().y(),2) + pow(transform.getOrigin().z(),2));
+ //distance = 2.0;	
+ return distance;
+ 
+ //ROS_INFO("x is ", transform.getOrigin().x);
+ //ROS_INFO("y is ", transform.getOrigin().y);
+ //ROS_INFO("z is ", transform.getOrigin().z);
+ 
+ }
+ */
 
 
 /*
-Given a waypoint (latitude, longitude, and altitude) as well as the bearing and angular distance to travel,
-calculateCoordinate will return the new location in the form of a waypoint.
-*/
+ Given a waypoint (latitude, longitude, and altitude) as well as the bearing and angular distance to travel,
+ calculateCoordinate will return the new location in the form of a waypoint.
+ */
 AU_UAV_ROS::waypoint calculateCoordinate(AU_UAV_ROS::waypoint currentPosition, double bearing, double distance){
 	// Calculate final latitude and longitude; see movable-type.co.uk/scripts/latlong.html for more detail
 	bearing *= DEGREES_TO_RADIANS; // convert angle of force to radians
-
+    
 	double lat1 = currentPosition.latitude*DEGREES_TO_RADIANS; // lat1 = current latitude in radians
 	double dLat = distance*cos(bearing); // calculate change in latitude
 	double lat2 = lat1 + dLat; // calculate final latitude
@@ -169,12 +195,12 @@ AU_UAV_ROS::waypoint calculateCoordinate(AU_UAV_ROS::waypoint currentPosition, d
 		lat2 = lat2>0 ? PI-lat2 : -(PI-lat2);
 	
 	double lon2 = (currentPosition.longitude*DEGREES_TO_RADIANS+dLon) * RADIANS_TO_DEGREES; // calculate final latitude and convert to degrees
-
+    
 	//wrap around if necessary to ensure final longitude is on the interval [-180, 180]
 	lon2 = manipulateAngle(lon2);
-
+    
 	lat2 *= RADIANS_TO_DEGREES; // convert final latitude to degrees
-
+    
 	AU_UAV_ROS::waypoint coordinate;
 	coordinate.latitude = lat2;
 	coordinate.longitude = lon2;
@@ -186,7 +212,7 @@ AU_UAV_ROS::waypoint calculateCoordinate(AU_UAV_ROS::waypoint currentPosition, d
 /* Convert Cardinal direction to an angle in the Cartesian plane */
 double toCartesian(double UAVBearing){
 	UAVBearing = manipulateAngle(UAVBearing); /* get angle on the interval [-180, 180] */
-
+    
 	if (UAVBearing < 180 && UAVBearing >= 0) /* UAV bearing is in the first or fourth quadrant */
 		return 90 - UAVBearing;
 	else if (UAVBearing < 0 && UAVBearing >= -90) /* UAV bearing is in the second quadrant */
@@ -202,7 +228,7 @@ double toCartesian(double UAVBearing){
 /* Convert angle in the Cartesian plane to a Cardinal direction */
 double toCardinal(double angle){
 	angle = manipulateAngle(angle); /* get angle on the interval [-180, 180] */
-
+    
 	if (angle <= 90 && angle >= -90) /* angle is in the first or fourth quadrant */
 		return 90 - angle;
 	else if (angle >= 90 && angle <= 180) /* angle is in the second quadrant */
@@ -216,10 +242,10 @@ double toCardinal(double angle){
 
 
 /* 
-Returns the distance between two points of latitude and longitude in meters.  The first two parameters
-are the latitude and longitude of the starting point, and the last two parameters are the latitude and
-longitude of the ending point. 
-*/
+ Returns the distance between two points of latitude and longitude in meters.  The first two parameters
+ are the latitude and longitude of the starting point, and the last two parameters are the latitude and
+ longitude of the ending point. 
+ */
 double findDistance(double lat1, double long1, double lat2, double long2){
 	double latDiff = 0.0, lonDiff = 0.0;
 	double squareHalfChord = 0.0, angularDistance = 0.0;
@@ -227,47 +253,24 @@ double findDistance(double lat1, double long1, double lat2, double long2){
 	/* Get difference in radians */
 	latDiff = (lat1 - lat2)*DEGREE_TO_RAD;
 	lonDiff = (long2 - long1)*DEGREE_TO_RAD;
-
+    
 	/* Find the square of half of the chord length between the two points */
 	/* sin(lat difference / 2)^2 + cos(lat1) * cos(lat2)*sin(lon difference / 2)^2 */
 	squareHalfChord = pow(sin(latDiff / 2), 2) + 
-			  pow(sin(lonDiff / 2), 2) *
-			  cos(lat1 * DEGREE_TO_RAD) *
-			  cos(lat2 * DEGREE_TO_RAD);
-
+    pow(sin(lonDiff / 2), 2) *
+    cos(lat1 * DEGREE_TO_RAD) *
+    cos(lat2 * DEGREE_TO_RAD);
+    
 	/* Calculate the angular distance in radians */
 	/* 2 * arctan(sqrt(squareHalfchrod), sqrt(1 - squareHalfChord)) */
 	angularDistance = 2 * atan2(sqrt(squareHalfChord),
-				    sqrt(1 - squareHalfChord));
-
+                                sqrt(1 - squareHalfChord));
+    
 	/* Return result in kilometers */
 	return angularDistance * EARTH_RADIUS;
 }
 
-/* 
-Returns the Cardinal angle between two points of latitude and longitude in degrees.  The starting point is given
-by lat1 and long1 (the first two parameters), and the final point is given by lat2 and long2 (the final two parameters).
-The value returned is on the interval [-180, 180].
-*/
-double findAngle(double lat1, double long1, double lat2, double long2){
-	double lonDiff = 0.0, angle = 0.0;
-	double x = 0.0, y = 0.0;
 
-	/* Convert latitudes to radians */
-	lat2 *= DEGREE_TO_RAD;
-	lat1 = lat1 * DEGREE_TO_RAD;
-
-	lonDiff = (long2 - long1) * DEGREE_TO_RAD; /* convert difference in longitude to radians */
-	
-	/* Haversine math: see http://www.movable-type.co.uk/scripts/latlong.html for more information */
-	y = sin(lonDiff)*cos(lat2);
-	x = cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lonDiff);
-
-	angle = atan2(y, x) * 180/PI;
-
-	//Angle will be in degrees.
-	return angle;
-}
 
 /*
-Given position at t-1 and at t, calculate heading on [-180, 180] where E = 90, N = 0 degrees */
+ Given position at t-1 and at t, calculate heading on [-180, 180] where E = 90, N = 0 degrees */
