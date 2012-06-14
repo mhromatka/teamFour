@@ -1,0 +1,3 @@
+<launch>
+	<node name="algo" pkg="AU_UAV_ROS" type="algo" output="screen" />
+</launch>
