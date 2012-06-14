@@ -9,17 +9,40 @@ IMPORTANT NOTE: All of the angles passed to the functions and returned from thes
 #define STANDARD_FUNCS
 
 #include "AU_UAV_ROS/standardDefs.h" /* for EARTH_RADIUS in meters */
+#include "AU_UAV_ROS/PlanePose.h"
+
 const double PI = 4*atan(1);
 const double DEGREE_TO_RAD = PI/180; /* convert degrees to radians */
 
+//
+AU_UAV_ROS::waypoint getTwoPlanesIntersect(AU_UAV_ROS::PlanePose planePose1, AU_UAV_ROS::PlanePose planePose2);
 
-//returns coordinate position of plane based on waypoint in lat/long
-AU_UAV_ROS::waypoint getPlaneDistance(AU_UAV_ROS::waypoint planePosition);
+//
+double getAMinusB(AU_UAV_ROS::PlanePose planePose1, AU_UAV_ROS::PlanePose planePose2);
+
+//returns coordinate position (meters) of plane based on waypoint in lat/long
+AU_UAV_ROS::waypoint getPlaneXYZ(AU_UAV_ROS::waypoint planePosition);
 
 //gets distance between two positions in lat/long measurements, returns distance in meters
 double getActualDistance(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second);
-//get distance between two planes (in meters)
-double getPlaneDist(int planeID);
+
+//
+double getNewHeading(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second);
+
+//
+double getRelativeBearingAngle(double myHeading, double theirHeading);
+
+/*
+ Manipulates the angle parameter so it is always on the interval [-180, 180]
+ */
+double manipulateAngle(double angle);
+
+/* 
+ Returns the Cardinal angle between two points of latitude and longitude in degrees.  The starting point is given
+ by lat1 and long1 (the first two parameters), and the final point is given by lat2 and long2 (the final two parameters).
+ The value returned is on the interval [-180, 180].
+ */
+double findAngle(double lat1, double long1, double lat2, double long2);
 
 /*
 Takes the current location in the form of a waypoint, and given a bearing and angular distance, calculates
@@ -39,10 +62,7 @@ Cardinal direction.  Returns a value on the interval [-180, 180]
 */
 double toCardinal(double angle);
 
-/*
-Manipulates the angle parameter so it is always on the interval [-180, 180]
-*/
-double manipulateAngle(double angle);
+
 
 /* 
 Returns the distance between two points of latitude and longitude in meters.  The first two parameters
@@ -51,12 +71,7 @@ longitude of the ending point.
 */
 double findDistance(double lat1, double long1, double lat2, double long2);
 
-/* 
-Returns the Cardinal angle between two points of latitude and longitude in degrees.  The starting point is given
-by lat1 and long1 (the first two parameters), and the final point is given by lat2 and long2 (the final two parameters).
-The value returned is on the interval [-180, 180].
-*/
-double findAngle(double lat1, double long1, double lat2, double long2);
+
 
 #endif
 

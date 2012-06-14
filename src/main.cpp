@@ -28,7 +28,7 @@
 #include <iomanip>
 
 int main(int argc, char** argv) {
-	ros::init(argc, argv, "collisionAvoidance");
+	ros::init(argc, argv, "algo");
 	ros::NodeHandle n;
 	
 ROS_INFO("it worked take2");

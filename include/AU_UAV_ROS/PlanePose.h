@@ -1,23 +1,42 @@
+#ifndef PLANEPOSE_H
+#define PLANEPOSE_H
 
 #include "ros/ros.h"
 #include "AU_UAV_ROS/standardFuncs.h"
+#include "AU_UAV_ROS/TelemetryUpdate.h"
 
 namespace AU_UAV_ROS{
 	class PlanePose{
+    private:
+        int planePoseID;
+        double planePoseX;
+        double planePoseY;
+        double planePoseZ;
+        double planePoseHeading;
+        
   	public:
         //default constructor
         PlanePose(void);
 
-        PlanePose(int id, double x, double y, double z, double heading);
+        PlanePose(int planePoseID, double planePoseX, double planePoseY, double planePoseZ, double planePoseHeading);
 
-        double setX(double newX);
+        void setX(double newX);
 
-        double setY(double newY);
+        void setY(double newY);
 
-        double setZ(double newZ);
+        void setZ(double newZ);
 
-        double setHeading(double newHeading);
+        void setHeading(double newHeading);
 
+        double getX();
+        
+        double getY();
+        
+        double getZ();
+        
+        double getHeading();
+        
         void update(const AU_UAV_ROS::TelemetryUpdate &msg);
     };
 };
+#endif

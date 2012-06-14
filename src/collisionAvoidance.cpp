@@ -15,8 +15,6 @@ is already setup along with a dummy version of how the service request would wor
 #include "AU_UAV_ROS/TelemetryUpdate.h"
 #include "AU_UAV_ROS/GoToWaypoint.h"
 #include "AU_UAV_ROS/standardFuncs.h"
-#include "AU_UAV_ROS/standardDefs.h"
-#include "AU_UAV_ROS/PlanePose.h"
 
 //ROS service client for calling a service from the coordinator
 ros::ServiceClient client;
@@ -35,8 +33,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     {
         //AU_UAV_ROS::PlanePose newPlane(msg->planeID, msg->currentLatitude, msg->currentLongitude, msg->currentAltitude, 0.0);// = new AU_UAV_ROS::PlanePose::PlanePose(msg->planeID, msg->currentLatitude, msg->currentLatitude, msg->currentAltitude, 0.0);
 
-        //
-        planeMap [msg->planeID]=newPlane;
+        //planeMap [msg->planeID]=newPlane;
         //add this UAV's info the map
         
         //perform some other calcs for Fuzzy Input
@@ -55,7 +52,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     
     //get relative plane heading
         
-    //if relative plane heading = danger (between current plane and closest neighbor)
+    //if relative plane heading = danger (between current plane and closest neighbor) AND relative collision point = danger
         //get A, B
         //get A - B
         //get dist to collision

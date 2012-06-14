@@ -29,7 +29,6 @@ is already setup along with a dummy version of how the service request would wor
 
 
 #define METERS_TO_LATITUDE (1.0/111200.0)
-#define EARTH_RADIUS 6371000.0 //meters
 
 #define DEGREES_TO_RADIANS (M_PI/180.0)
 #define RADIANS_TO_DEGREES (180.0/M_PI)

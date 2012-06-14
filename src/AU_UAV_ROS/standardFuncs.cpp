@@ -8,21 +8,70 @@
 #include <ros/ros.h>
 #include "AU_UAV_ROS/standardFuncs.h"
 #include "AU_UAV_ROS/standardDefs.h"
+#include "AU_UAV_ROS/PlanePose.h"
 
 #define WEST_MOST_LONGITUDE -85.490356
 #define NORTH_MOST_LATITUDE 32.606573
 
-
 #define METERS_TO_LATITUDE (1.0/111200.0)
-#define EARTH_RADIUS 6371000.0 //meters
 
 #define DEGREES_TO_RADIANS (M_PI/180.0)
 #define RADIANS_TO_DEGREES (180.0/M_PI)
 
+//This function will take two plane positions and returns the intersection of the lines produced by each plane's respective heading. This point of intersection is the location of a possible intersection
+//It will expect the planes' positions to be in meters and heading to be in degrees
+AU_UAV_ROS::waypoint getTwoPlanesIntersect(AU_UAV_ROS::PlanePose planePose1, AU_UAV_ROS::PlanePose planePose2)
+{
+    double planeHeading1 = planePose1.getHeading()*DEGREES_TO_RADIANS;//planeHeading1*DEGREES_TO_RADIANS;
+    double planeHeading2 = planePose2.getHeading()*DEGREES_TO_RADIANS;//planeHeading2*DEGREES_TO_RADIANS;
+    
+    //convert planeHeading to "m" here where m is the slope of the line in the X-Y plane
+    planeHeading1 = 1/tan(planeHeading1);
+    planeHeading2 = 1/tan(planeHeading2);
+    //printf("planeHeading1 is %f\n planeHeading2 is %f\n", planeHeading1, planeHeading2);
+    
+    double planePose1Lat = planePose1.getX();
+    double planePose1Long = planePose1.getY();
+    double planePose2Lat = planePose2.getX();
+    double planePose2Long = planePose2.getY();
+    
+    double x_coordinate = ((planeHeading1*planePose1Lat)
+                           -(planeHeading2*planePose2Lat)
+                           -planePose1Long
+                           + planePose2Long)
+                           /(planeHeading1 - planeHeading2);
+    double y_coordinate = planePose1Long + planeHeading1*(x_coordinate - planePose1Lat);
+    
+    //collisionPoint returned in meters
+    AU_UAV_ROS::waypoint collisionPoint;
+    collisionPoint.latitude = x_coordinate;
+    collisionPoint.longitude = y_coordinate;
+    collisionPoint.altitude = 0.0;
+    
+    return collisionPoint;
+}
+
+//This function will take two plane positions and find the difference in the distance away from the two's shared collision point. 
+//For example, if plane1 is 10 meters away from the collision point where plane1 and plane2 would crash and plane 2 is 15 meters away from the same collision point, this function returns 5 meters.
+double getAMinusB(AU_UAV_ROS::PlanePose planePose1, AU_UAV_ROS::PlanePose planePose2)
+{
+    AU_UAV_ROS::waypoint collisionPoint = getTwoPlanesIntersect(planePose1, planePose2);
+    double planePose1Lat = planePose1.getX();
+    double planePose1Long = planePose1.getY();
+    double planePose2Lat = planePose2.getX();
+    double planePose2Long = planePose2.getY();
+    
+    double AMinusB = sqrt(pow((collisionPoint.latitude - planePose1Lat) + (collisionPoint.longitude - planePose1Long),2))
+    - sqrt(pow((collisionPoint.latitude - planePose2Lat),2)+pow((collisionPoint.longitude - planePose2Long),2));
+    //printf("A - B is %f    ", AMinusB);
+    return abs(AMinusB);
+}
+
 //This function will return the plane's XYZ coordinates (the same coordinates being published to the RVIZ simulator)
 //This function DOES take the earth's curvature into consideration
 //The function uses the "getActualDistance" function with the top/left-most point and the plane's lat/long/alt
-AU_UAV_ROS::waypoint getPlaneDistance(AU_UAV_ROS::waypoint planePosition){
+AU_UAV_ROS::waypoint getPlaneXYZ(AU_UAV_ROS::waypoint planePosition)
+{
 	AU_UAV_ROS::waypoint origin;
 	
 	origin.latitude=NORTH_MOST_LATITUDE;
