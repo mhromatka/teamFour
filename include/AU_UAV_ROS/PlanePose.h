@@ -35,6 +35,7 @@ namespace AU_UAV_ROS{
         double getZ();
         
         double getHeading();
+        AU_UAV_ROS::position getPosition();
         
         void update(const AU_UAV_ROS::TelemetryUpdate &msg);
     };
