@@ -1,32 +1,43 @@
+#ifndef PLANEPOSE_H
+#define PLANEPOSE_H
 
 #include "ros/ros.h"
 #include "AU_UAV_ROS/standardFuncs.h"
+#include "AU_UAV_ROS/TelemetryUpdate.h"
 
+namespace AU_UAV_ROS{
+	class PlanePose{
+    private:
+        int planePoseID;
+        double planePoseX;
+        double planePoseY;
+        double planePoseZ;
+        double planePoseHeading;
+        
+  	public:
+        //default constructor
+        PlanePose(void);
 
+        PlanePose(int planePoseID, double planePoseX, double planePoseY, double planePoseZ, double planePoseHeading);
 
-//default constructor
-AU_UAV_ROS::PlanePose::PlanePose(){
-	this->id = 0;
-	this->x = 0;
-	this->y = 0;
-	this->z = 0;
-	this->heading = 0;
-}
+        void setX(double newX);
 
-AU_UAV_ROS::PlanePose::PlanePose(int id, double x, double y, double z, double heading){
-	this->id = id;
-	this->x = x;
-	this->y = y;
-	this->z = z;
-	this->heading = heading;
-}
+        void setY(double newY);
 
-double AU_UAV_ROS::PlanePose::setX(double newX);
+        void setZ(double newZ);
 
-double AU_UAV_ROS::PlanePose::setY(double newY);
+        void setHeading(double newHeading);
 
-double AU_UAV_ROS::PlanePose::setZ(double newZ);
-
-double AU_UAV_ROS::PlanePose::setHeading(double newHeading);
-
-void AU_UAV_ROS::PlanePose::update(const AU_UAV_ROS::TelemetryUpdate &msg);
+        double getX();
+        
+        double getY();
+        
+        double getZ();
+        
+        double getHeading();
+        AU_UAV_ROS::position getPosition();
+        
+        void update(const AU_UAV_ROS::TelemetryUpdate &msg);
+    };
+};
+#endif
