@@ -109,7 +109,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
             //convert fuzzyHeading to a waypoint to send the plane here
             //this should be in LatLongAlt
             
-            //nextWaypoint = getCAWaypoint(fuzzyHeading, );
+            nextWaypoint = getCAWaypoint(fuzzyHeading, currentPose);
             nextWaypoint.latitude = 32.606573;
             nextWaypoint.longitude = -85.490356;
             

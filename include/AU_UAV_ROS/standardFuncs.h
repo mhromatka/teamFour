@@ -15,6 +15,12 @@ IMPORTANT NOTE: All of the angles passed to the functions and returned from thes
 const double PI = 4*atan(1);
 const double DEGREE_TO_RAD = PI/180; /* convert degrees to radians */
 
+//This function is passed a heading value returned by our fuzzy logic engine
+//The function returns a waypoint to pass to the simulator
+AU_UAV_ROS::waypoint getCAWaypoint(double fuzzyHeading, AU_UAV_ROS::position currentPose);
+
+AU_UAV_ROS::waypoint convertPositionToWaypoint(AU_UAV_ROS::position position);
+
 //convert PlanePose object to a simple position struct data type
 AU_UAV_ROS::position convertPlanePoseToWaypoint(double x_coordinate, double y_coordinate, double altitude);
 
