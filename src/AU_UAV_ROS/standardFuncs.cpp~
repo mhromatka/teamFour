@@ -26,8 +26,13 @@
 AU_UAV_ROS::waypoint getCAWaypoint(double fuzzyHeading, AU_UAV_ROS::position currentPose)
 {
     AU_UAV_ROS::position NWPmeters;
+<<<<<<< HEAD
     NWPmeters.x_coordinate = currentPose.x_coordinate + 30.0*sin(fuzzyHeading*DEGREES_TO_RADIANS);
     NWPmeters.y_coordinate = currentPose.y_coordinate + 30.0*cos(fuzzyHeading*DEGREES_TO_RADIANS);
+=======
+    NWPmeters.x_coordinate = currentPose.x_coordinate + 30*sin(fuzzyHeading);
+    NWPmeters.y_coordinate = currentPose.y_coordinate + 30*cos(fuzzyHeading);
+>>>>>>> 88dc72416fb1e31b5e7416a32d0714ddc2b195f7
     NWPmeters.altitude = currentPose.altitude;
     
     AU_UAV_ROS::waypoint nextWaypoint = convertPositionToWaypoint(NWPmeters);
@@ -44,8 +49,13 @@ AU_UAV_ROS::waypoint convertPositionToWaypoint(AU_UAV_ROS::position position)
     AU_UAV_ROS::waypoint waypoint;
     
     //Take x and y and convert back to lat long
+<<<<<<< HEAD
     waypoint.longitude = WEST_MOST_LONGITUDE + (deltaX/93865.73571034615);
     waypoint.latitude = NORTH_MOST_LATITUDE + (deltaY/110897.4592048873);
+=======
+    waypoint.latitude = NORTH_MOST_LATITUDE + (deltaX/110897.4592048873);
+    waypoint.longitude = WEST_MOST_LONGITUDE + (deltaY/93865.73571034615);
+>>>>>>> 88dc72416fb1e31b5e7416a32d0714ddc2b195f7
     waypoint.altitude = position.altitude;
     
     return waypoint;
@@ -93,7 +103,11 @@ double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 //This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
 {
+<<<<<<< HEAD
     return true;
+=======
+    return false;
+>>>>>>> 88dc72416fb1e31b5e7416a32d0714ddc2b195f7
 }
 
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
@@ -192,8 +206,13 @@ AU_UAV_ROS::position getXYZ(AU_UAV_ROS::waypoint planePose)
 	eastwestpoint.longitude=planePose.longitude;
     
 	AU_UAV_ROS::position planeXYZ;
+<<<<<<< HEAD
+	planeXYZ.x_coordinate = (eastwestpoint.longitude - origin.longitude)*93865.73571034615;//getActualDistance(origin,eastwestpoint);
+	planeXYZ.y_coordinate = (northsouthpoint.latitude - origin.latitude)*110897.4592048873;//-getActualDistance(origin,northsouthpoint);
+=======
 	planeXYZ.x_coordinate = getActualDistance(origin,eastwestpoint);
 	planeXYZ.y_coordinate = -getActualDistance(origin,northsouthpoint);
+>>>>>>> 88dc72416fb1e31b5e7416a32d0714ddc2b195f7
 	planeXYZ.altitude = planePose.altitude;
     
 	return planeXYZ;
@@ -206,8 +225,13 @@ double getActualDistance(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second
     double deltaLat = first.latitude - second.latitude;
 	double deltaLong = first.longitude - second.longitude;
 	
+<<<<<<< HEAD
     double deltaY = deltaLat*110897.4592048873;
     double deltaX = deltaLong*93865.73571034615;
+=======
+    double deltaX = deltaLat*110897.4592048873;
+    double deltaY = deltaLong*93865.73571034615;
+>>>>>>> 88dc72416fb1e31b5e7416a32d0714ddc2b195f7
     double dist = sqrt(pow(deltaX,2) + pow(deltaY,2));
     
     return dist;
@@ -241,10 +265,21 @@ double getNewHeading(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 {
     double deltaX = second.x_coordinate - first.x_coordinate;
 	double deltaY = second.y_coordinate - first.y_coordinate;
+<<<<<<< HEAD
 	double heading = atan2(deltaX,deltaY);
     
 	heading = (heading*RADIANS_TO_DEGREES);
 
+=======
+	double heading = atan(deltaX/deltaY);
+    
+	heading = (heading*RADIANS_TO_DEGREES);
+    
+	if (deltaX <= 0)
+	{
+		heading = -heading;
+	}
+>>>>>>> 88dc72416fb1e31b5e7416a32d0714ddc2b195f7
 	return heading;
 }
 
@@ -275,6 +310,16 @@ AU_UAV_ROS::position getMidpoint(AU_UAV_ROS::position planePose1, AU_UAV_ROS::po
     
     return midpoint;
 }
+
+//The rest of the functions in this file were written by the APF team in 2011 REU
+    //They may or may not be used in our algorithm
+//
+//
+//
+//
+//
+
+
 
 //The rest of the functions in this file were written by the APF team in 2011 REU
     //They may or may not be used in our algorithm

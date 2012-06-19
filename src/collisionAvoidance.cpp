@@ -43,12 +43,15 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 */
  //store current Pose (LatLongAlt) in a waypoint struct
     AU_UAV_ROS::waypoint planeLatLongAlt;
+
     planeLatLongAlt.longitude = msg->currentLongitude;
     planeLatLongAlt.latitude = msg->currentLatitude;
+
     planeLatLongAlt.altitude = msg->currentAltitude;
     
     //return current Pose in meters
     AU_UAV_ROS::position currentPose = getXYZ(planeLatLongAlt);
+
     //ROS_INFO("currentPose for %d is:\n X = %f\n Y = %f\n Z = %f\n H = %f\n", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, newHeading);
     
     //ROS_INFO("Count during plane %d 's telem update is %d", msg->planeID, planeMap.count(msg->planeID));
@@ -56,6 +59,15 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 	if(planeMap.count(msg->planeID)==0)
     {
         //ROS_INFO("Create a map for the very first time for %d", msg->planeID);
+
+    ROS_INFO("currentPose for %d is:\n X = %f\n Y = %f\n Z = %f\n H = %f\n", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, newHeading);
+    
+    ROS_INFO("Count during plane %d 's telem update is %d", msg->planeID, planeMap.count(msg->planeID));
+    
+	if(planeMap.count(msg->planeID)==0)
+    {
+        ROS_INFO("Create a map for the very first time for %d", msg->planeID);
+
         //create new PlanePose object with currentPose and 0.0 heading
         AU_UAV_ROS::PlanePose newPlane(msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, 0.0);// = new AU_UAV_ROS::PlanePose::PlanePose(msg->planeID, msg->currentLatitude, msg->currentLatitude, msg->currentAltitude, 0.0);
         
@@ -67,7 +79,9 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     //May not be totally necessary, but cleaner
     else if (planeMap.count(msg->planeID)!=0 && msg->currentWaypointIndex == -1)
     {
-        //ROS_INFO("Don't do nothing.");
+
+        ROS_INFO("Don't do nothing.");
+
         //break
     }
     
@@ -75,16 +89,20 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     //This should come after everything - no it shouldn't
     else
     {
-        //ROS_INFO("PLANES\n HAVE\n BEEN\n SENT\n WAY\n POINTS!");
-        //ROS_INFO("PlanePose: \n X is %f \n Y is %f \n Z is %f \n Heading is %f", planeMap.find(msg->planeID)->second.getX(), planeMap.find(msg->planeID)->second.getY(), planeMap.find(msg->planeID)->second.getZ(), planeMap.find(msg->planeID)->second.getHeading());
+
+        ROS_INFO("PLANES\n HAVE\n BEEN\n SENT\n WAY\n POINTS!");
+        ROS_INFO("PlanePose: \n X is %f \n Y is %f \n Z is %f \n Heading is %f", planeMap.find(msg->planeID)->second.getX(), planeMap.find(msg->planeID)->second.getY(), planeMap.find(msg->planeID)->second.getZ(), planeMap.find(msg->planeID)->second.getHeading());
+
         //get new heading
         //first parameter is the current plane's old position
         //second parameter is the current plane's current position
         
         AU_UAV_ROS::position oldPose = planeMap.find(msg->planeID)->second.getPosition();
         double newHeading = getNewHeading(oldPose, currentPose);
+
 	ROS_INFO("%d oldPose\n x = %f\n y = %f\n z = %f", msg->planeID, oldPose.x_coordinate, oldPose.y_coordinate, oldPose.altitude);
         ROS_INFO("%d currentPose\n x = %f\n y = %f\n z = %f", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude);
+
         
         //not sure if I need anything here
         //set newHeading in planeMap
@@ -123,13 +141,18 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
             //fuzzyHeading is just change in heading, so we need to add it to the currentHeading
             double fuzzyHeading = secondFuzzyEngine(distanceToCollision, overlapDistance, bearingAngle)
                                     + newHeading;
+
 		ROS_INFO("fuzzy heading is %f", fuzzyHeading);
             	ROS_INFO("newHeading is %f", newHeading);
+
+     
             //convert fuzzyHeading to a waypoint to send the plane here
             //this should be in LatLongAlt
             
             nextWaypoint = getCAWaypoint(fuzzyHeading, currentPose);
+
 		ROS_INFO("nextWaypoint is %f   %f    %f", nextWaypoint.latitude, nextWaypoint.longitude, nextWaypoint.altitude);
+
             //nextWaypoint.latitude = 32.606573;
             //nextWaypoint.longitude = -85.490356;
             
@@ -147,8 +170,9 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
             
             if(requestInfoClient.call(requestsrv))
             {
-                //ROS_INFO("Received response from service request %d", (count-1));
-                
+
+                ROS_INFO("Received response from service request %d", (count-1));
+
                 //store response into the next waypoint
                 nextWaypoint.latitude = requestsrv.response.latitude;
                 nextWaypoint.longitude = requestsrv.response.longitude;
@@ -156,7 +180,9 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
             }
             else
             {
-                //ROS_ERROR("Did not receive response");
+
+                ROS_ERROR("Did not receive response");
+
             }
         }
         
@@ -172,12 +198,16 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         
         if(goToWaypointClient.call(gotosrv))
         {
-            //ROS_INFO("Received response from service request %d", (count-1));
+
+            ROS_INFO("Received response from service request %d", (count-1));
+
             count++;
         }
         else
         {
-            //ROS_ERROR("Did not receive response");
+
+            ROS_ERROR("Did not receive response");
+
         }
     
 //Basic Idea:
@@ -203,9 +233,10 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
             //get dist to collision
             //get dist between
         //update map   
-  
+
 	AU_UAV_ROS::PlanePose newPlane(msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, newHeading);
 	planeMap[msg->planeID] = newPlane; 
+
     }
 }
 

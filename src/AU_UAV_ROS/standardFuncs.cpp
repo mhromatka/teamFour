@@ -26,6 +26,7 @@
 AU_UAV_ROS::waypoint getCAWaypoint(double fuzzyHeading, AU_UAV_ROS::position currentPose)
 {
     AU_UAV_ROS::position NWPmeters;
+
     NWPmeters.x_coordinate = currentPose.x_coordinate + 30.0*sin(fuzzyHeading*DEGREES_TO_RADIANS);
     NWPmeters.y_coordinate = currentPose.y_coordinate + 30.0*cos(fuzzyHeading*DEGREES_TO_RADIANS);
     NWPmeters.altitude = currentPose.altitude;
@@ -44,6 +45,7 @@ AU_UAV_ROS::waypoint convertPositionToWaypoint(AU_UAV_ROS::position position)
     AU_UAV_ROS::waypoint waypoint;
     
     //Take x and y and convert back to lat long
+
     waypoint.longitude = WEST_MOST_LONGITUDE + (deltaX/93865.73571034615);
     waypoint.latitude = NORTH_MOST_LATITUDE + (deltaY/110897.4592048873);
     waypoint.altitude = position.altitude;
@@ -93,7 +95,9 @@ double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 //This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
 {
+
     return true;
+
 }
 
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
@@ -192,8 +196,10 @@ AU_UAV_ROS::position getXYZ(AU_UAV_ROS::waypoint planePose)
 	eastwestpoint.longitude=planePose.longitude;
     
 	AU_UAV_ROS::position planeXYZ;
+
 	planeXYZ.x_coordinate = (eastwestpoint.longitude - origin.longitude)*93865.73571034615;//getActualDistance(origin,eastwestpoint);
 	planeXYZ.y_coordinate = (northsouthpoint.latitude - origin.latitude)*110897.4592048873;//-getActualDistance(origin,northsouthpoint);
+
 	planeXYZ.altitude = planePose.altitude;
     
 	return planeXYZ;
@@ -206,8 +212,10 @@ double getActualDistance(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second
     double deltaLat = first.latitude - second.latitude;
 	double deltaLong = first.longitude - second.longitude;
 	
+
     double deltaY = deltaLat*110897.4592048873;
     double deltaX = deltaLong*93865.73571034615;
+
     double dist = sqrt(pow(deltaX,2) + pow(deltaY,2));
     
     return dist;
@@ -244,6 +252,11 @@ double getNewHeading(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 	double heading = atan2(deltaX,deltaY);
     
 	heading = (heading*RADIANS_TO_DEGREES);
+    
+	if (deltaX <= 0)
+	{
+		heading = -heading;
+	}
 
 	return heading;
 }
@@ -275,6 +288,16 @@ AU_UAV_ROS::position getMidpoint(AU_UAV_ROS::position planePose1, AU_UAV_ROS::po
     
     return midpoint;
 }
+
+//The rest of the functions in this file were written by the APF team in 2011 REU
+    //They may or may not be used in our algorithm
+//
+//
+//
+//
+//
+
+
 
 //The rest of the functions in this file were written by the APF team in 2011 REU
     //They may or may not be used in our algorithm
