@@ -156,7 +156,7 @@ AU_UAV_ROS::position getTwoPlanesIntersect(AU_UAV_ROS::PlanePose first, AU_UAV_R
 }
 
 //This function will take two plane positions and find the difference in the distance away from the two's shared collision point. 
-//For example, if plane1 is 10 meters away from the collision point where plane1 and plane2 would crash and plane 2 is 15 meters away from the same collision point, this function returns 5 meters.
+//For example, if plane1 is 10 meters away from the collision point where plane1 and plane2 would crash and plane 2 is 15 meters away from the same collision point, this function returns -5 meters.
 double getOverlapDistance(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second)
 {
     AU_UAV_ROS::position collisionPoint = getTwoPlanesIntersect(first, second);
