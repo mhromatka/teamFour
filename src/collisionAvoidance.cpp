@@ -16,6 +16,7 @@ is already setup along with a dummy version of how the service request would wor
 #include "AU_UAV_ROS/GoToWaypoint.h"
 #include "AU_UAV_ROS/RequestWaypointInfo.h"
 #include "AU_UAV_ROS/standardFuncs.h"
+//#include "AU_UAV_ROS/FuzzyLogicController.h"
 
 //ROS service client for calling a service from the coordinator
 ros::ServiceClient goToWaypointClient;
@@ -26,12 +27,21 @@ int count;
 double heading = 0.0;//check to make sure planes actually do initiate with 0.0 heading????
 
 std::map<int,AU_UAV_ROS::PlanePose> planeMap;
+//AU_UAV_ROS::FuzzyLogicController fl1;
+
 
 
 //this function is run everytime new telemetry information from any plane is recieved
 void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 {
-    //store current Pose (LatLongAlt) in a waypoint struct
+/*
+   ROS_ERROR("ENTERING CA TELEMETRY CALLBACK");
+   std::stringstream ss;
+   ss << "Fuzzified Output:  " << fl1.processFLOne(16.0, -48.0);
+   std::string s1(ss.str());
+   ROS_ERROR(s1.c_str());  
+*/
+ //store current Pose (LatLongAlt) in a waypoint struct
     AU_UAV_ROS::waypoint planeLatLongAlt;
     planeLatLongAlt.latitude = msg->currentLatitude;
     planeLatLongAlt.longitude = msg->currentLongitude;
@@ -197,6 +207,9 @@ int main(int argc, char **argv)
 	goToWaypointClient = n.serviceClient<AU_UAV_ROS::GoToWaypoint>("go_to_waypoint");
     requestInfoClient = n.serviceClient<AU_UAV_ROS::RequestWaypointInfo>("request_waypoint_info");
 	
+	//create Fuzzy Logic Controllers for use in telemetryCallback
+	//fl1 = AU_UAV_ROS::FuzzyLogicController();
+
 	//random seed for if statement in telemetryCallback, remove when collision avoidance work begins
 	srand(time(NULL));
 	

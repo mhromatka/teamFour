@@ -17,11 +17,14 @@
 #include "fuzzylite/FuzzyLite.h"
 #include "fuzzylite/OutputLVar.h"
 #include "fuzzylite/InputLVar.h"
+#include "AU_UAV_ROS/FuzzyLogicController.h"
 #include <limits>
 #include <string>
 #include <sstream>
 
 #include "fuzzylite/FunctionTerm.h"
+
+AU_UAV_ROS::FuzzyLogicController *fl1; 
 namespace fl {
 
 	void Test::FuzzyLogicOne(){
@@ -36,7 +39,7 @@ namespace fl {
         distanceToCollision->addTerm(new fl::ShoulderTerm("VERYCLOSE", 12.0, 24.0, true));
         distanceToCollision->addTerm(new fl::TriangularTerm("CLOSE", 20.0, 48.0));
         distanceToCollision->addTerm(new fl::TriangularTerm("FAR", 42.0, 78.0));//42
-        distanceToCollision->addTerm(new fl::ShoulderTerm("VERYFAR", 66.0, 72.0, false));
+        distanceToCollision->addTerm(new fl::ShoulderTerm("VERYFAR", 70.0, 78.0, false));
         engine.addInputLVar(distanceToCollision);
       
         //aMinusB, where A is the distance to collision point for the plane of interest
@@ -328,16 +331,22 @@ namespace fl {
 	ROS_INFO("starting fuzzyController1 in 2 seconds");
 	ROS_INFO("======================================");
 	sleep(2);
-	FuzzyLogicOne();
+	AU_UAV_ROS::FuzzyLogicController fl1;
+	fl::flScalar out = fl1.FuzzyLogicOne(15.0, 48.0);
+	std::stringstream ss;
+        ss << "Output= " << out;
+	std::string s1(ss.str());
+        ROS_INFO(s1.c_str()); 
 	ROS_INFO("======================================");
-/*    
-	FL_LOG("Starting in 2 second");
-    	FL_LOG("Example: Simple Mamdani");
-    	FL_LOG("=======================");
+    
+	ROS_INFO("Starting in 2 second");
+    	ROS_INFO("Example: MY ATTEMPT");
+    	ROS_INFO("=======================");
     	sleep(2);
-    	SimpleMamdani();
-    	FL_LOG("=======================\n");
 
+    //	fl1->processFLOne(15.0, 48.0);
+    	ROS_INFO("=======================\n");
+/*
     	FL_LOG("Starting in 2 second");
     	FL_LOG("Example: Complex Mamdani");
     	FL_LOG("========================");
