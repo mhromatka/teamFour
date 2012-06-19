@@ -89,8 +89,9 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 	eastwestpoint.latitude=NORTH_MOST_LATITUDE;
 	eastwestpoint.longitude=msg->currentLongitude;
 
-
-	transform.setOrigin( tf::Vector3(distance(origin,eastwestpoint), -distance(origin,northsouthpoint),0));
+	double tempX = (eastwestpoint.longitude - origin.longitude)*93865.73571034615;
+	double tempY = (northsouthpoint.latitude - origin.latitude)*110897.4592048873;
+	transform.setOrigin( tf::Vector3(tempX, tempY, 0.0));//distance(origin,eastwestpoint), -distance(origin,northsouthpoint),0));
 	   transform.setRotation( tf::Quaternion(0, 0, msg->targetBearing) );
 	int planeID = msg->planeID;
 	char buffer [5];

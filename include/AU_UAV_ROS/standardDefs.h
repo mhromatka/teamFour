@@ -42,6 +42,17 @@ namespace AU_UAV_ROS
 	};
 }
 
+namespace AU_UAV_ROS
+{
+	//Here's our standard waypoint definition
+	struct position
+	{
+		double x_coordinate;
+		double y_coordinate;
+		double altitude;
+	};
+}
+
 /*
 isBlankLine(...)
 simple function for parsing to determine is a string is a "blank" line

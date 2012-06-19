@@ -16,10 +16,98 @@
 #include "fuzzylite/FuzzyLite.h"
 #include "fuzzylite/OutputLVar.h"
 #include "fuzzylite/InputLVar.h"
+#include "AU_UAV_ROS/FuzzyLogicController.h"
 #include <limits>
 
 #include "fuzzylite/FunctionTerm.h"
+
+AU_UAV_ROS::FuzzyLogicController *fl1; 
 namespace fl {
+/*	void Test::FuzzyLogicOne(){
+        FuzzyOperator& op = FuzzyOperator::DefaultFuzzyOperator();
+        FuzzyEngine engine("Collison-Detection", op);
+	//don't know what these guys do: 
+        engine.hedgeSet().add(new fl::HedgeNot);
+        engine.hedgeSet().add(new fl::HedgeSomewhat);
+        engine.hedgeSet().add(new fl::HedgeVery);
+
+        fl::InputLVar* distanceToCollision = new fl::InputLVar("CollDist");
+        distanceToCollision->addTerm(new fl::ShoulderTerm("VERYCLOSE", 12.0, 24.0, true));
+        distanceToCollision->addTerm(new fl::TriangularTerm("CLOSE", 20.0, 48.0));
+        distanceToCollision->addTerm(new fl::TriangularTerm("FAR", 42.0, 78.0));//42
+        distanceToCollision->addTerm(new fl::ShoulderTerm("VERYFAR", 70.0, 78.0, false));
+        engine.addInputLVar(distanceToCollision);
+      
+        //aMinusB, where A is the distance to collision point for the plane of interest
+        //and B is dist to Collision for the nearest plane, aMinusB determines whether a collision
+        //will actually happen or if the planes will be at that collision point at different times
+        fl::InputLVar* aMinusB = new fl::InputLVar("OverlapDistance");
+	aMinusB->addTerm(new fl::ShoulderTerm("VERYNEG", -24.0, -16.0, true));
+        aMinusB->addTerm(new fl::TriangularTerm("NEG", -20.0, -8.0));
+        aMinusB->addTerm(new fl::TriangularTerm("ZERO", -12.0, 12.0));
+        aMinusB->addTerm(new fl::TriangularTerm("POS", 8.0, 20.0));
+	aMinusB->addTerm(new fl::ShoulderTerm("VERYPOS", 16.0, 24.0, false));
+        engine.addInputLVar(aMinusB);
+
+        fl::OutputLVar* collImminence = new fl::OutputLVar("CollisionImminence");
+        collImminence->addTerm(new fl::ShoulderTerm("SAFE", 0.0, 0.4, true));
+	collImminence->addTerm(new fl::TriangularTerm("POSSIBLE", 0.3, 0.7));
+	collImminence->addTerm(new fl::ShoulderTerm("DANGER", 0.6, 1.0, false));
+        engine.addOutputLVar(collImminence);
+
+	fl::RuleBlock* block = new fl::RuleBlock();
+        block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is VERYNEG then CollisionImminence is SAFE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is NEG then CollisionImminence is very DANGER", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is ZERO then CollisionImminence is very DANGER", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is POS then CollisionImminence is very DANGER", engine));
+ 	block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is VERYPOS then CollisionImminence is SAFE", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is CLOSE and OverlapDistance is VERYNEG then CollisionImminence is very SAFE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is CLOSE and OverlapDistance is NEG then CollisionImminence is POSSIBLE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is CLOSE and OverlapDistance is ZERO then CollisionImminence is very DANGER", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is CLOSE and OverlapDistance is POS then CollisionImminence is POSSIBLE", engine));
+ 	block->addRule(new fl::MamdaniRule("if CollDist is CLOSE and OverlapDistance is VERYPOS then CollisionImminence is very SAFE", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is FAR and OverlapDistance is VERYNEG then CollisionImminence is very SAFE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is FAR and OverlapDistance is NEG then CollisionImminence is POSSIBLE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is FAR and OverlapDistance is ZERO then CollisionImminence is very POSSIBLE", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is FAR and OverlapDistance is POS then CollisionImminence is POSSIBLE", engine));
+ 	block->addRule(new fl::MamdaniRule("if CollDist is FAR and OverlapDistance is VERYPOS then CollisionImminence is very SAFE", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is VERYFAR and OverlapDistance is VERYNEG then CollisionImminence is very SAFE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is VERYFAR and OverlapDistance is NEG then CollisionImminence is somewhat POSSIBLE", engine));
+        block->addRule(new fl::MamdaniRule("if CollDist is VERYFAR and OverlapDistance is ZERO then CollisionImminence is POSSIBLE", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is VERYFAR and OverlapDistance is POS then CollisionImminence is somewhat POSSIBLE", engine));
+	block->addRule(new fl::MamdaniRule("if CollDist is VERYFAR and OverlapDistance is VERYPOS then CollisionImminence is very SAFE", engine));
+
+        engine.addRuleBlock(block);
+
+	flScalar in1, in2; 
+	for (fl::flScalar in = 0.0; in < 1.1; in += 0.1) {
+	    in1 = 14.0;//in*80.0; //veryclose 
+	    in2 = in*96.0 - 48.0; 
+            distanceToCollision->setInput(in1);
+	    aMinusB->setInput(in2);
+            engine.process();
+            fl::flScalar out = collImminence->output().defuzzify();
+            (void)out; //Just to avoid warning when building
+
+	    //compose string for info purposes
+	    std::stringstream ss;
+            ss << "DtoColl= " << in1 << "  Fuzzified= " << distanceToCollision->fuzzify(in1);
+	    std::string s1(ss.str());
+            ROS_INFO(s1.c_str()); 
+	    ss.str(std::string());//clear sstream
+ 	    ss << "Overlap= " << in2 << "  Fuzzified= " << aMinusB->fuzzify(in2);
+	    std::string s2(ss.str());
+            ROS_INFO(s2.c_str());
+	    ss.str(std::string());//clear sstream
+ 	    ss << "Output= " << out << "  Fuzzified= " << collImminence->fuzzify(out);
+	    std::string s3(ss.str());
+	    ROS_INFO(s3.c_str()); 
+            ROS_INFO("--");
+        }
+}
+
+
+
 
     void Test::SimpleMamdani() {
         FuzzyOperator& op = FuzzyOperator::DefaultFuzzyOperator();
@@ -116,133 +204,21 @@ namespace fl {
         }
     }
 
-    void Test::SimpleTakagiSugeno() {
-        FuzzyOperator& op = FuzzyOperator::DefaultFuzzyOperator();
-        op.setDefuzzifier(new TakagiSugenoDefuzzifier);
-        FuzzyEngine engine("takagi-sugeno", op);
-
-
-        fl::InputLVar* x = new fl::InputLVar("x");
-        x->addTerm(new fl::TriangularTerm("NEAR_1", 0, 2));
-        x->addTerm(new fl::TriangularTerm("NEAR_2", 1, 3));
-        x->addTerm(new fl::TriangularTerm("NEAR_3", 2, 4));
-        x->addTerm(new fl::TriangularTerm("NEAR_4", 3, 5));
-        x->addTerm(new fl::TriangularTerm("NEAR_5", 4, 6));
-        x->addTerm(new fl::TriangularTerm("NEAR_6", 5, 7));
-        x->addTerm(new fl::TriangularTerm("NEAR_7", 6, 8));
-        x->addTerm(new fl::TriangularTerm("NEAR_8", 7, 9));
-        x->addTerm(new fl::TriangularTerm("NEAR_9", 8, 10));
-        engine.addInputLVar(x);
-
-        fl::OutputLVar* f_x = new fl::OutputLVar("f_x");
-        f_x->addTerm(new fl::FunctionTerm("function", "(sin x) / x", 0, 10));
-        engine.addOutputLVar(f_x);
-
-        fl::RuleBlock* block = new fl::RuleBlock();
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_1 then f_x=0.84", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_2 then f_x=0.45", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_3 then f_x=0.04", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_4 then f_x=-0.18", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_5 then f_x=-0.19", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_6 then f_x=-0.04", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_7 then f_x=0.09", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_8 then f_x=0.12", engine));
-        block->addRule(new fl::TakagiSugenoRule("if x is NEAR_9 then f_x=0.04", engine));
-
-        engine.addRuleBlock(block);
-
-        int n = 40;
-        flScalar mse = 0;
-        for (fl::flScalar in = x->minimum(); in < x->maximum() ;
-                in += (x->minimum() + x->maximum()) / n) {
-            x->setInput(in);
-            engine.process();
-            flScalar expected = f_x->term(0)->membership(in);
-            flScalar obtained = f_x->output().defuzzify();
-            flScalar se = (expected - obtained) * (expected - obtained);
-            mse += isnan(se) ? 0 : se;
-            FL_LOG("x=" << in << "\texpected_out=" << expected << "\tobtained_out=" << obtained
-                    << "\tse=" << se);
-        }
-        FL_LOG("MSE=" << mse / n);
-    }
-
-    void Test::SimplePendulum() {
-
-        FuzzyOperator& op = FuzzyOperator::DefaultFuzzyOperator();
-        FuzzyEngine engine("pendulum-3d",op);
-
-        fl::InputLVar* anglex = new fl::InputLVar("AngleX");
-        std::vector<std::string> labels;
-        labels.push_back("NEAR_0");
-        labels.push_back("NEAR_45");
-        labels.push_back("NEAR_90");
-        labels.push_back("NEAR_135");
-        labels.push_back("NEAR_180");
-        anglex->createTerms(5, LinguisticTerm::MF_SHOULDER, 0, 180, labels);
-        engine.addInputLVar(anglex);
-
-        fl::InputLVar* anglez = new fl::InputLVar("AngleZ");
-        labels.clear();
-        labels.push_back("NEAR_0");
-        labels.push_back("NEAR_45");
-        labels.push_back("NEAR_90");
-        labels.push_back("NEAR_135");
-        labels.push_back("NEAR_180");
-        anglez->createTerms(5, LinguisticTerm::MF_SHOULDER, 0, 180, labels);
-        engine.addInputLVar(anglez);
-
-        fl::OutputLVar* forcex = new fl::OutputLVar("ForceX");
-        //fl::OutputLVar* forcex = new fl::OutputLVar("ForceX");
-        labels.clear();
-        labels.push_back("NL");
-        labels.push_back("NS");
-        labels.push_back("ZR");
-        labels.push_back("PS");
-        labels.push_back("PL");
-        forcex->createTerms(5, LinguisticTerm::MF_TRIANGULAR, -1, 1, labels);
-        engine.addOutputLVar(forcex);
-
-        fl::OutputLVar* forcez = new fl::OutputLVar("ForceZ");
-        labels.clear();
-        labels.push_back("NL");
-        labels.push_back("NS");
-        labels.push_back("ZR");
-        labels.push_back("PS");
-        labels.push_back("PL");
-        forcez->createTerms(5, LinguisticTerm::MF_TRIANGULAR, -1, 1, labels);
-        engine.addOutputLVar(forcez);
-
-        fl::RuleBlock* ruleblock = new fl::RuleBlock("Rules");
-        ruleblock->addRule(new fl::MamdaniRule("if AngleX is NEAR_180 then ForceX is NL", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleX is NEAR_135 then ForceX is NS", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleX is NEAR_90 then ForceX is ZR", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleX is NEAR_45 then ForceX is PS", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleX is NEAR_0 then ForceX is PL", engine));
-
-        ruleblock->addRule(new fl::MamdaniRule("if AngleZ is NEAR_180 then ForceZ is NL", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleZ is NEAR_135 then ForceZ is NS", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleZ is NEAR_90 then ForceZ is ZR", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleZ is NEAR_45 then ForceZ is PS", engine));
-        ruleblock->addRule(new fl::MamdaniRule("if AngleZ is NEAR_0 then ForceZ is PL", engine));
-        engine.addRuleBlock(ruleblock);
-
-        FL_LOG(engine.toString());
-        for (int i = 0; i < 180; i += 20) {
-            engine.setInput("AngleX", i);
-            engine.process();
-            FL_LOG("angle=" << i << "\tforce=" << engine.output("ForceX"));
-        }
-    }
-
+*/
     void Test::main(int args, char** argv) {
-    	FL_LOG("Starting in 2 second");
-    	FL_LOG("Example: Simple Mamdani");
-    	FL_LOG("=======================");
-    	sleep(2);
-    	SimpleMamdani();
-    	FL_LOG("=======================\n");
 
+	ROS_INFO("starting fuzzyController1 in 2 seconds");
+	ROS_INFO("======================================");
+	sleep(2);
+	AU_UAV_ROS::FuzzyLogicController fl1;
+	fl::flScalar out = fl1.FuzzyLogicOne(15.0, 48.0);
+	std::stringstream ss;
+        ss << "Output= " << out;
+	std::string s1(ss.str());
+        ROS_INFO(s1.c_str()); 
+	ROS_INFO("======================================");
+    
+/*
     	FL_LOG("Starting in 2 second");
     	FL_LOG("Example: Complex Mamdani");
     	FL_LOG("========================");
@@ -268,6 +244,7 @@ namespace fl {
 
         FL_LOG("For further examples build the GUI...");
     }
-
+*/
+}
 }
 

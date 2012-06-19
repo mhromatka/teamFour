@@ -54,7 +54,9 @@ double AU_UAV_ROS::PlanePose::getZ(){
 double AU_UAV_ROS::PlanePose::getHeading(){
 	return this->planePoseHeading; 
 }
-
+AU_UAV_ROS::position AU_UAV_ROS::PlanePose::getPosition(){
+    return convertPlanePoseToWaypoint(this->getX(), this->getY(), this->getZ());
+}
 
 void AU_UAV_ROS::PlanePose::update(const AU_UAV_ROS::TelemetryUpdate &msg){
 	AU_UAV_ROS::waypoint telemetryInfo;
@@ -62,10 +64,10 @@ void AU_UAV_ROS::PlanePose::update(const AU_UAV_ROS::TelemetryUpdate &msg){
 	telemetryInfo.longitude = msg.currentLongitude;
 	telemetryInfo.altitude = msg.currentAltitude;	
 
-	AU_UAV_ROS::waypoint newPoseData = getPlaneXYZ(telemetryInfo);	/* call inherited function */
-
-	this->setX(newPoseData.latitude); 
-	this->setY(newPoseData.longitude); 
+	AU_UAV_ROS::position newPoseData = getXYZ(telemetryInfo);	/* call inherited function */
+    
+	this->setX(newPoseData.x_coordinate); 
+	this->setY(newPoseData.y_coordinate); 
 	this->setZ(newPoseData.altitude);
 
 }
