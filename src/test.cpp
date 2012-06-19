@@ -12,21 +12,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-#include "ros/ros.h"
 #include "fuzzylite/test.h"
 #include "fuzzylite/FuzzyLite.h"
 #include "fuzzylite/OutputLVar.h"
 #include "fuzzylite/InputLVar.h"
 #include "AU_UAV_ROS/FuzzyLogicController.h"
 #include <limits>
-#include <string>
-#include <sstream>
 
 #include "fuzzylite/FunctionTerm.h"
 
 AU_UAV_ROS::FuzzyLogicController *fl1; 
 namespace fl {
 
+<<<<<<< HEAD
 	void Test::FuzzyLogicOne(){
         FuzzyOperator& op = FuzzyOperator::DefaultFuzzyOperator();
         FuzzyEngine engine("Collison-Detection", op);
@@ -112,6 +110,8 @@ namespace fl {
 
 
 /*
+=======
+>>>>>>> 2f3205d3b6f87f27afad6ea703f7785e68be6bdc
     void Test::SimpleMamdani() {
         FuzzyOperator& op = FuzzyOperator::DefaultFuzzyOperator();
         FuzzyEngine engine("simple-mamdani", op);
@@ -323,10 +323,11 @@ namespace fl {
             engine.setInput("AngleX", i);
             engine.process();
             FL_LOG("angle=" << i << "\tforce=" << engine.output("ForceX"));
-        } 
-    }*/
+        }
+    }
 
     void Test::main(int args, char** argv) {
+<<<<<<< HEAD
 
 	ROS_INFO("starting fuzzyController1 in 2 seconds");
 	ROS_INFO("======================================");
@@ -342,6 +343,11 @@ namespace fl {
 	ROS_INFO("Starting in 2 second");
     	ROS_INFO("Example: MY ATTEMPT");
     	ROS_INFO("=======================");
+=======
+    	FL_LOG("Starting in 2 second");
+    	FL_LOG("Example: Simple Mamdani");
+    	FL_LOG("=======================");
+>>>>>>> 2f3205d3b6f87f27afad6ea703f7785e68be6bdc
     	sleep(2);
 
     //	fl1->processFLOne(15.0, 48.0);
@@ -370,7 +376,7 @@ namespace fl {
         SimpleTakagiSugeno();
         FL_LOG("=======================\n");
 
-        FL_LOG("For further examples build the GUI..."); */
+        FL_LOG("For further examples build the GUI...");
     }
 
 }

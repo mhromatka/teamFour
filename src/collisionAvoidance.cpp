@@ -24,7 +24,7 @@ ros::ServiceClient requestInfoClient;
 
 //keeps count of the number of services requested
 int count;
-double heading = 0.0;//check to make sure planes actually do initiate with 0.0 heading????
+double newHeading = 0.0;//check to make sure planes actually do initiate with 0.0 heading????
 
 std::map<int,AU_UAV_ROS::PlanePose> planeMap;
 //AU_UAV_ROS::FuzzyLogicController fl1;
@@ -49,12 +49,13 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     
     //return current Pose in meters
     AU_UAV_ROS::position currentPose = getXYZ(planeLatLongAlt);
+    ROS_INFO("currentPose for %d is:\n X = %f\n Y = %f\n Z = %f\n H = %f\n", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, newHeading);
     
-    //put current plane position into PlanePose object every time
-
+    ROS_INFO("Count during plane %d 's telem update is %d", msg->planeID, planeMap.count(msg->planeID));
     
 	if(planeMap.count(msg->planeID)==0)
     {
+        ROS_INFO("Create a map for the very first time for %d", msg->planeID);
         //create new PlanePose object with currentPose and 0.0 heading
         AU_UAV_ROS::PlanePose newPlane(msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, 0.0);// = new AU_UAV_ROS::PlanePose::PlanePose(msg->planeID, msg->currentLatitude, msg->currentLatitude, msg->currentAltitude, 0.0);
         
@@ -66,6 +67,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     //May not be totally necessary, but cleaner
     else if (planeMap.count(msg->planeID)!=0 && msg->currentWaypointIndex == -1)
     {
+        ROS_INFO("Don't do nothing.");
         //break
     }
     
@@ -73,6 +75,8 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     //This should come after everything - no it shouldn't
     else
     {
+        ROS_INFO("PLANES\n HAVE\n BEEN\n SENT\n WAY\n POINTS!");
+        ROS_INFO("PlanePose: \n X is %f \n Y is %f \n Z is %f \n Heading is %f", planeMap.find(msg->planeID)->second.getX(), planeMap.find(msg->planeID)->second.getY(), planeMap.find(msg->planeID)->second.getZ(), planeMap.find(msg->planeID)->second.getHeading());
         //get new heading
         //first parameter is the current plane's old position
         //second parameter is the current plane's current position
@@ -114,14 +118,16 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         bool enterCA = firstFuzzyEngine(distanceToCollision, overlapDistance);
         if (enterCA)
         {
-            double fuzzyHeading = secondFuzzyEngine(distanceToCollision, overlapDistance, bearingAngle);
+            //fuzzyHeading is just change in heading, so we need to add it to the currentHeading
+            double fuzzyHeading = secondFuzzyEngine(distanceToCollision, overlapDistance, bearingAngle)
+                                    + newHeading;
             
             //convert fuzzyHeading to a waypoint to send the plane here
             //this should be in LatLongAlt
             
-            //nextWaypoint = getCAWaypoint(fuzzyHeading, );
-            nextWaypoint.latitude = 32.606573;
-            nextWaypoint.longitude = -85.490356;
+            nextWaypoint = getCAWaypoint(fuzzyHeading, currentPose);
+            //nextWaypoint.latitude = 32.606573;
+            //nextWaypoint.longitude = -85.490356;
             
         }
 
@@ -163,6 +169,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         if(goToWaypointClient.call(gotosrv))
         {
             ROS_INFO("Received response from service request %d", (count-1));
+            count++;
         }
         else
         {

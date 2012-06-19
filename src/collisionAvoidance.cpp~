@@ -26,7 +26,6 @@ double heading = 0.0;//check to make sure planes actually do initiate with 0.0 h
 //this function is run everytime new telemetry information from any plane is recieved
 void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 {
-	
 
 	//currentHeading = getNewHeading(msg->planeID);
 	

@@ -33,8 +33,8 @@ namespace fl {
     public:
 
         TrapezoidalTerm();
-        TrapezoidalTerm(const std::string& name, flScalar minimum = -INFINITY, flScalar b = -INFINITY, flScalar c = INFINITY,
-                flScalar maximum = INFINITY);//edited to include b and c values, 6/18
+        TrapezoidalTerm(const std::string& name, flScalar minimum = -INFINITY,
+                flScalar maximum = INFINITY);
         TrapezoidalTerm(const FuzzyOperator& fuzzy_op, const std::string& name,
                 flScalar minimum = -INFINITY, flScalar maximum = INFINITY);
         virtual ~TrapezoidalTerm();

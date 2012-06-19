@@ -27,11 +27,11 @@ namespace fl {
 
     }
 
-    TrapezoidalTerm::TrapezoidalTerm(const std::string& name, flScalar minimum, flScalar upperLeft, flScalar upperRight,
+    TrapezoidalTerm::TrapezoidalTerm(const std::string& name, flScalar minimum,
             flScalar maximum) :
     LinguisticTerm(name, minimum, maximum), _b(0), _c(0) {
-        setB(upperLeft);//edited from original, 6/15 to include b and c in constructor, allow right angles in TrapezoidalTerm
-        setC(upperRight);
+        setB(minimum + (maximum - minimum) * 1 / 5);
+        setC(minimum + (maximum - minimum) * 4 / 5);
     }
 
     TrapezoidalTerm::TrapezoidalTerm(const FuzzyOperator& fuzzy_op,

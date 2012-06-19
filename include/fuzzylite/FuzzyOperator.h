@@ -49,7 +49,7 @@ namespace fl {
                 const FuzzyOperation* cmod = new FuzzyModClip,
                 const FuzzyOperation* aggregation = new FuzzyOrMax,
                 const FuzzyDefuzzifier* defuzzifier = new CoGDefuzzifier,
-                const AreaCentroidAlgorithm* algorithm = new TriangulationAlgorithm,
+                const AreaCentroidAlgorithm* algorithm = new TrapezoidalAlgorithm,
                 int number_of_samples = FL_SAMPLE_SIZE);
         virtual ~FuzzyOperator();
 

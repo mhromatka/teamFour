@@ -26,7 +26,6 @@ namespace fl {
 
     class Test {
     public:
-	static void FuzzyLogicOne();
         static void SimpleMamdani();
         static void ComplexMamdani();
         static void SimpleTakagiSugeno();

@@ -22,7 +22,34 @@
 
 //This function is passed a heading value returned by our fuzzy logic engine
 //The function returns a waypoint to pass to the simulator
-//AU_UAV_ROS::waypoint getCAWaypoint(
+
+AU_UAV_ROS::waypoint getCAWaypoint(double fuzzyHeading, AU_UAV_ROS::position currentPose)
+{
+    AU_UAV_ROS::position NWPmeters;
+    NWPmeters.x_coordinate = currentPose.x_coordinate + 30*sin(fuzzyHeading);
+    NWPmeters.y_coordinate = currentPose.y_coordinate + 30*cos(fuzzyHeading);
+    NWPmeters.altitude = currentPose.altitude;
+    
+    AU_UAV_ROS::waypoint nextWaypoint = convertPositionToWaypoint(NWPmeters);
+
+    return nextWaypoint;
+}
+
+AU_UAV_ROS::waypoint convertPositionToWaypoint(AU_UAV_ROS::position position)
+{
+    double deltaX = position.x_coordinate;
+    double deltaY = position.y_coordinate;
+    double altitude = position.altitude;
+    
+    AU_UAV_ROS::waypoint waypoint;
+    
+    //Take x and y and convert back to lat long
+    waypoint.latitude = NORTH_MOST_LATITUDE + (deltaX/110897.4592048873);
+    waypoint.longitude = WEST_MOST_LONGITUDE + (deltaY/93865.73571034615);
+    waypoint.altitude = position.altitude;
+    
+    return waypoint;
+}
 
 //Convert a plane pose object (which stores planeID, x, y, z, heading) into a simple position type (meters)
 AU_UAV_ROS::position convertPlanePoseToWaypoint(double x_coordinate, double y_coordinate, double altitude)
@@ -66,11 +93,11 @@ double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 //This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
 {
-    return true;
+    return false;
 }
 
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
-double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double relativeBearingAngle)
+double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double bearingAngle)
 {
     return 0.0;
 }
@@ -176,22 +203,34 @@ AU_UAV_ROS::position getXYZ(AU_UAV_ROS::waypoint planePose)
 //This function DOES take the earth's curvature into consideration
 double getActualDistance(AU_UAV_ROS::waypoint first, AU_UAV_ROS::waypoint second)
 {
-	//difference in latitudes in radians
-	double lat1 = first.latitude*DEGREES_TO_RADIANS;
-	double lat2 = second.latitude*DEGREES_TO_RADIANS;
-	double long1 = first.longitude*DEGREES_TO_RADIANS;
-	double long2 = second.longitude*DEGREES_TO_RADIANS;
+    double deltaLat = first.latitude - second.latitude;
+	double deltaLong = first.longitude - second.longitude;
 	
-	double deltaLat = lat2 - lat1;
-	double deltaLong = long2 - long1;
-	
-	//haversine crazy math, should probably be verified further beyond basic testing
-	//calculate distance from current position to destination
-	double a = pow(sin(deltaLat / 2.0), 2);
-	a = a + cos(lat1)*cos(lat2)*pow(sin(deltaLong/2.0), 2);
-	a = 2.0 * asin(sqrt(a));
-	
-	return EARTH_RADIUS * a;
+    double deltaX = deltaLat*110897.4592048873;
+    double deltaY = deltaLong*93865.73571034615;
+    double dist = sqrt(pow(deltaX,2) + pow(deltaY,2));
+    
+    return dist;
+    
+    
+    /* this is Matt's method which we decided not to use:
+        //difference in latitudes in radians
+        double lat1 = first.latitude*DEGREES_TO_RADIANS;
+        double lat2 = second.latitude*DEGREES_TO_RADIANS;
+        double long1 = first.longitude*DEGREES_TO_RADIANS;
+        double long2 = second.longitude*DEGREES_TO_RADIANS;
+        
+        double deltaLat = lat2 - lat1;
+        double deltaLong = long2 - long1;
+        
+        //haversine crazy math, should probably be verified further beyond basic testing
+        //calculate distance from current position to destination
+        double a = pow(sin(deltaLat / 2.0), 2);
+        a = a + cos(lat1)*cos(lat2)*pow(sin(deltaLong/2.0), 2);
+        a = 2.0 * asin(sqrt(a));
+        
+        return EARTH_RADIUS * a;
+     */
 }
 
 //This will take two waypoints and measure the heading between them (based on position)
