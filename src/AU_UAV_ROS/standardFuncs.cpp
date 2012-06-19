@@ -93,11 +93,11 @@ double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 //This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
 {
-    return true;
+    return false;
 }
 
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
-double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double relativeBearingAngle)
+double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double bearingAngle)
 {
     return 0.0;
 }
