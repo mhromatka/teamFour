@@ -16,7 +16,7 @@ is already setup along with a dummy version of how the service request would wor
 #include "AU_UAV_ROS/GoToWaypoint.h"
 #include "AU_UAV_ROS/RequestWaypointInfo.h"
 #include "AU_UAV_ROS/standardFuncs.h"
-//#include "AU_UAV_ROS/FuzzyLogicController.h"
+#include "AU_UAV_ROS/FuzzyLogicController.h"
 
 //ROS service client for calling a service from the coordinator
 ros::ServiceClient goToWaypointClient;
@@ -27,7 +27,7 @@ int count;
 double newHeading = 0.0;//check to make sure planes actually do initiate with 0.0 heading????
 
 std::map<int,AU_UAV_ROS::PlanePose> planeMap;
-//AU_UAV_ROS::FuzzyLogicController fl1;
+//AU_UAV_ROS::FuzzyLogicController *fl1;
 
 
 
@@ -63,7 +63,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     ROS_INFO("currentPose for %d is:\n X = %f\n Y = %f\n Z = %f\n H = %f\n", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, newHeading);
     
     ROS_INFO("Count during plane %d 's telem update is %d", msg->planeID, planeMap.count(msg->planeID));
-    
+    }
 	if(planeMap.count(msg->planeID)==0)
     {
         ROS_INFO("Create a map for the very first time for %d", msg->planeID);
@@ -185,7 +185,9 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 
             }
         }
+
         
+
         //service request to go to the waypoint determined by fuzzy logicness OR normal waypoint
         AU_UAV_ROS::GoToWaypoint gotosrv;
         gotosrv.request.planeID = msg->planeID;
