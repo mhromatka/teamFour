@@ -27,11 +27,11 @@ namespace fl {
 
     }
 
-    TrapezoidalTerm::TrapezoidalTerm(const std::string& name, flScalar minimum,
+    TrapezoidalTerm::TrapezoidalTerm(const std::string& name, flScalar minimum, flScalar b, flScalar c, 
             flScalar maximum) :
     LinguisticTerm(name, minimum, maximum), _b(0), _c(0) {
-        setB(minimum + (maximum - minimum) * 1 / 5);
-        setC(minimum + (maximum - minimum) * 4 / 5);
+        setB(b);
+        setC(c);
     }
 
     TrapezoidalTerm::TrapezoidalTerm(const FuzzyOperator& fuzzy_op,

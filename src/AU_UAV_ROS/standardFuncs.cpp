@@ -10,6 +10,8 @@
 #include "AU_UAV_ROS/standardFuncs.h"
 #include "AU_UAV_ROS/standardDefs.h"
 #include "AU_UAV_ROS/PlanePose.h"
+#include "AU_UAV_ROS/FuzzyLogicController.h"
+#include "fuzzylite/FuzzyLite.h"
 #include <map>
 
 #define WEST_MOST_LONGITUDE -85.490356
@@ -90,21 +92,10 @@ int getClosestPlane(int planeID, std::map<int,AU_UAV_ROS::PlanePose> planeMap)
 double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 {
     double dist = sqrt(pow((first.x_coordinate - second.x_coordinate),2)+pow((first.y_coordinate - second.y_coordinate),2)+pow((first.altitude - second.altitude),2));
+
+return dist;
 }
 
-//This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm
-bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
-{
-
-    return true;
-
-}
-
-//This function will take inputs of min(A,B), A-B, bearing angle and output the heading
-double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double bearingAngle)
-{
-    return 0.0;
-}
 
 //This function will return the minimum distance to collision or the min(A,B)
 //does NOT work in three space yet, whatever.

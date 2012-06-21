@@ -18,6 +18,11 @@ is already setup along with a dummy version of how the service request would wor
 #include "AU_UAV_ROS/standardFuncs.h"
 #include "AU_UAV_ROS/FuzzyLogicController.h"
 
+//collisionAvoidance does not have a header file, define methods here
+bool firstFuzzyEngine(double distanceToCollision, double overlapDistance);
+double secondFuzzyEngine(double distBtwnPlanes, double bearingAngle);//double distanceToCollision, double overlapDistance, double relativeBearingAngle);
+
+
 //ROS service client for calling a service from the coordinator
 ros::ServiceClient goToWaypointClient;
 ros::ServiceClient requestInfoClient;
@@ -27,20 +32,14 @@ int count;
 double newHeading = 0.0;//check to make sure planes actually do initiate with 0.0 heading????
 
 std::map<int,AU_UAV_ROS::PlanePose> planeMap;
-//AU_UAV_ROS::FuzzyLogicController *fl1;
+AU_UAV_ROS::FuzzyLogicController fuzzy1;
 
 
 
 //this function is run everytime new telemetry information from any plane is recieved
 void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 {
-/*
-   ROS_ERROR("ENTERING CA TELEMETRY CALLBACK");
-   std::stringstream ss;
-   ss << "Fuzzified Output:  " << fl1.processFLOne(16.0, -48.0);
-   std::string s1(ss.str());
-   ROS_ERROR(s1.c_str());  
-*/
+
  //store current Pose (LatLongAlt) in a waypoint struct
     AU_UAV_ROS::waypoint planeLatLongAlt;
 
@@ -125,6 +124,11 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         double bearingAngle = getBearingAngle(planeMap.find(msg->planeID)->second, 
                                           planeMap.find(closestPlane)->second);
         
+
+	AU_UAV_ROS::position planePose1 = planeMap.find(msg->planeID)->second.getPosition();
+    	AU_UAV_ROS::position planePose2 = planeMap.find(closestPlane)->second.getPosition();
+	double distBtwnPlanes = getDist(planePose1, planePose2);
+        
     /*----------------------------------------------------------------------------------*/
         
         
@@ -133,15 +137,16 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         
         //always stay at same altitude for next waypoint
         nextWaypoint.altitude = msg->currentAltitude;
-    
+    	
         //Decide to enter fuzzy logic??????
         bool enterCA = firstFuzzyEngine(distanceToCollision, overlapDistance);
-        if (enterCA)
-        {
-            //fuzzyHeading is just change in heading, so we need to add it to the currentHeading
-            double fuzzyHeading = secondFuzzyEngine(distanceToCollision, overlapDistance, bearingAngle)
-                                    + newHeading;
 
+	if (enterCA)
+        {
+            
+	//fuzzyHeading is just change in heading, so we need to add it to the currentHeading
+            double fuzzyHeading = secondFuzzyEngine(distBtwnPlanes, bearingAngle)//distanceToCollision, overlapDistance, bearingAngle)
+                                    + newHeading;
 		ROS_INFO("fuzzy heading is %f", fuzzyHeading);
             	ROS_INFO("newHeading is %f", newHeading);
 
@@ -241,6 +246,37 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 
     }
 }
+
+
+//This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm where A is the distance for the current plane to the collision point and B is the distance to collision point for the closest plane to current plane. 
+bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
+{
+	bool collisionPotential = false; 	
+	double output = fuzzy1.FuzzyLogicOne(distanceToCollision, overlapDistance);
+	ROS_INFO("for dToColl= %f and overlap= %f", distanceToCollision, overlapDistance);
+	ROS_INFO("fuzzy logic output = %f", output);
+	
+	if(output >=.4){
+		collisionPotential = true; 
+		ROS_INFO("collisionPotential is TRUE");
+			
+	}
+	//ROS_INFO("decide to start CA? %s", collisionPotential);
+   	
+	return collisionPotential;
+
+}
+
+//This function will take inputs of min(A,B), A-B, bearing angle and output the heading
+double secondFuzzyEngine(double distBtwnPlanes, double bearingAngle)//double distanceToCollision, double overlapDistance, double bearingAngle)
+{
+	double changeInHeading = fuzzy1.FuzzyLogicTwo(distBtwnPlanes, bearingAngle);
+	ROS_INFO("for distBtwnPlanes= %f and bearingAngle= %f ", distBtwnPlanes, bearingAngle); 	
+	ROS_INFO("Change in heading: %f", changeInHeading);
+    	return changeInHeading;
+}
+
+
 
 int main(int argc, char **argv)
 {

@@ -29,6 +29,7 @@ is already setup along with a dummy version of how the service request would wor
 
 
 #define METERS_TO_LATITUDE (1.0/111200.0)
+#define EARTH_RADIUS 6371000.0 //meters
 
 #define DEGREES_TO_RADIANS (M_PI/180.0)
 #define RADIANS_TO_DEGREES (180.0/M_PI)
@@ -89,15 +90,14 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 	eastwestpoint.latitude=NORTH_MOST_LATITUDE;
 	eastwestpoint.longitude=msg->currentLongitude;
 
-	double tempX = (eastwestpoint.longitude - origin.longitude)*93865.73571034615;
-	double tempY = (northsouthpoint.latitude - origin.latitude)*110897.4592048873;
-	transform.setOrigin( tf::Vector3(tempX, tempY, 0.0);//distance(origin,eastwestpoint), -distance(origin,northsouthpoint),0));
+
+	transform.setOrigin( tf::Vector3(distance(origin,eastwestpoint), -distance(origin,northsouthpoint),0));
 	   transform.setRotation( tf::Quaternion(0, 0, msg->targetBearing) );
 	int planeID = msg->planeID;
 	char buffer [5];
 	sprintf(buffer, "%d",planeID);
 	   br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", buffer));
-/*
+	ros::spinOnce();
 	ROS_INFO("planeID is: %d", planeID);
 	if(planeID == 0){
 		double distance;
@@ -107,7 +107,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 		ROS_INFO("Distance is: %f", distance);
 }
 
-*/
+
 
 
 	uint32_t shape = visualization_msgs::Marker::SPHERE;
