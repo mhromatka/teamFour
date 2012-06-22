@@ -30,6 +30,8 @@ namespace fl {
         static void ComplexMamdani();
         static void SimpleTakagiSugeno();
         static void SimplePendulum();
+        static void FuzzyLogicOne();
+        static void FuzzyLogicTwo();
         static void main(int args, char** argv);
     };
 }
