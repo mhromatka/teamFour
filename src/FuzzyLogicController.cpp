@@ -33,19 +33,19 @@ double AU_UAV_ROS::FuzzyLogicController::FuzzyLogicOne(double cDist, double oDis
 	aMinusB->addTerm(new fl::ShoulderTerm("VERYNEG", -24.0, -16.0, true));
         aMinusB->addTerm(new fl::TriangularTerm("NEG", -20.0, -8.0));
         aMinusB->addTerm(new fl::TriangularTerm("ZERO", -12.0, 12.0));
-        aMinusB->addTerm(new fl::ShoulderTerm("POS", 8.0, 20.0, false));
+        aMinusB->addTerm(new fl::TriangularTerm("POS", 8.0, 20.0));
 	aMinusB->addTerm(new fl::ShoulderTerm("VERYPOS", 16.0, 24.0, false));
         engine.addInputLVar(aMinusB);
 
         fl::OutputLVar* collImminence = new fl::OutputLVar("CollisionImminence");
-        collImminence->addTerm(new fl::ShoulderTerm("SAFE", 0.0, 0.4, true));
-	collImminence->addTerm(new fl::TriangularTerm("POSSIBLE", 0.25, 0.75));
-	collImminence->addTerm(new fl::ShoulderTerm("DANGER", 0.6, 1.0, false));
+        collImminence->addTerm(new fl::ShoulderTerm("SAFE", 0.0, 4.0, true));
+	collImminence->addTerm(new fl::TriangularTerm("POSSIBLE", 2.5, 7.5));
+	collImminence->addTerm(new fl::ShoulderTerm("DANGER", 6.0, 10.0, false));
         engine.addOutputLVar(collImminence);
 
 	fl::RuleBlock* block = new fl::RuleBlock();
-	block->addRule(new fl::MamdaniRule("if OverlapDistance is VERYNEG or OverlapDistance is VERYPOS then CollisionImminence is SAFE", engine));
-//        block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is VERYNEG then CollisionImminence is SAFE", engine));
+	block->addRule(new fl::MamdaniRule("if OverlapDistance is VERYNEG then CollisionImminence is SAFE", engine));
+        block->addRule(new fl::MamdaniRule("if OverlapDistance is VERYPOS then CollisionImminence is SAFE", engine));
         block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is ZERO then CollisionImminence is DANGER", engine));
         block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is NEG then CollisionImminence is DANGER", engine));
 	block->addRule(new fl::MamdaniRule("if CollDist is VERYCLOSE and OverlapDistance is POS then CollisionImminence is DANGER", engine));
@@ -71,6 +71,71 @@ double AU_UAV_ROS::FuzzyLogicController::FuzzyLogicOne(double cDist, double oDis
 	aMinusB->setInput(oDist);
         engine.process();
 	return collImminence->output().defuzzify();
+
+}
+
+
+double AU_UAV_ROS::FuzzyLogicController::MFuzzyLogicTwo1(double collImminence, double collAngle, double oDist){
+        fl::FuzzyOperator& op = fl::FuzzyOperator::DefaultFuzzyOperator();
+        fl::FuzzyEngine engine("MLF21", op);
+
+        fl::InputLVar* collisionImminence = new fl::InputLVar("CollImminence");
+        collisionImminence->addTerm(new fl::ShoulderTerm("ALERT", 4.0, 6.0, true));
+        collisionImminence->addTerm(new fl::ShoulderTerm("DANGER", 5.0, 7.0, false));
+        engine.addInputLVar(collisionImminence);
+      
+        //aMinusB, where A is the distance to collision point for the plane of interest
+        //and B is dist to Collision for the nearest plane, aMinusB determines whether a collision
+        //will actually happen or if the planes will be at that collision point at different times
+        fl::InputLVar* collisionAngle = new fl::InputLVar("CollAngle");
+	collisionAngle->addTerm(new fl::ShoulderTerm("FRONTLEFT", -180.0, -130.0, true));
+        collisionAngle->addTerm(new fl::TriangularTerm("LEFTFRONT", -140.0, -55.0));
+        collisionAngle->addTerm(new fl::TriangularTerm("LEFT", -65.0, 20.0));
+        collisionAngle->addTerm(new fl::TriangularTerm("RIGHT", -20.0, 65.0));
+        collisionAngle->addTerm(new fl::TriangularTerm("RIGHTFRONT", 55.0, 140.0));
+	collisionAngle->addTerm(new fl::ShoulderTerm("FRONTRIGHT", 130.0, 180.0, false));
+        engine.addInputLVar(collisionAngle);
+
+        fl::InputLVar* aMinusB = new fl::InputLVar("OverlapDistance");
+	aMinusB->addTerm(new fl::ShoulderTerm("NEG", -20.0, -8.0, true));
+        aMinusB->addTerm(new fl::TriangularTerm("ZERO", -12.0, 12.0));
+	aMinusB->addTerm(new fl::ShoulderTerm("POS", 8.0, 20.0, false));
+        engine.addInputLVar(aMinusB);
+
+        fl::OutputLVar* changeHeading = new fl::OutputLVar("ChangeInHeading");
+        changeHeading->addTerm(new fl::ShoulderTerm("VERYLEFT", -30.0, -18.0, true));
+        changeHeading->addTerm(new fl::TriangularTerm("LEFT", -18.0, 4.0));
+        changeHeading->addTerm(new fl::TriangularTerm("RIGHT", -4.0, 18.0));
+        changeHeading->addTerm(new fl::ShoulderTerm("VERYRIGHT", 18.0, 30.0, false));    
+        engine.addOutputLVar(changeHeading);
+
+	fl::RuleBlock* block = new fl::RuleBlock();
+	block->addRule(new fl::MamdaniRule("if OverlapDistance is ZERO then ChangeInHeading is VERYRIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if (CollAngle is FRONTLEFT and OverlapDistance is NEG) or (CollAngle is FRONTRIGHT and OverlapDistance is POS) then ChangeInHeading is VERYLEFT", engine));
+	block->addRule(new fl::MamdaniRule("if (CollAngle is FRONTLEFT and OverlapDistance is POS) or (CollAngle is FRONTRIGHT and OverlapDistance is NEG) then ChangeInHeading is VERYRIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is LEFTFRONT and OverlapDistance is NEG then ChangeInHeading is RIGHT", engine));	
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is LEFTFRONT and OverlapDistance is POS then ChangeInHeading is LEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is LEFT and OverlapDistance is NEG then ChangeInHeading is RIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is LEFT and OverlapDistance is POS then ChangeInHeading is RIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is RIGHT and OverlapDistance is NEG then ChangeInHeading is LEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is RIGHT and OverlapDistance is POS then ChangeInHeading is LEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is RIGHTFRONT and OverlapDistance is NEG then ChangeInHeading is LEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is ALERT and CollAngle is RIGHTFRONT and OverlapDistance is POS then ChangeInHeading is RIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is LEFTFRONT and OverlapDistance is NEG then ChangeInHeading is VERYRIGHT", engine));	
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is LEFTFRONT and OverlapDistance is POS then ChangeInHeading is VERYLEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is LEFT and OverlapDistance is NEG then ChangeInHeading is RIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is LEFT and OverlapDistance is POS then ChangeInHeading is RIGHT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is RIGHT and OverlapDistance is NEG then ChangeInHeading is LEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is RIGHT and OverlapDistance is POS then ChangeInHeading is LEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is RIGHTFRONT and OverlapDistance is NEG then ChangeInHeading is VERYLEFT", engine));
+	block->addRule(new fl::MamdaniRule("if CollImminence is DANGER and CollAngle is RIGHTFRONT and OverlapDistance is POS then ChangeInHeading is VERYRIGHT", engine));
+
+        engine.addRuleBlock(block);
+	collisionImminence->setInput(collImminence);
+	collisionAngle->setInput(collAngle);
+	aMinusB->setInput(oDist);
+        engine.process();
+	return changeHeading->output().defuzzify();
 
 }
 

@@ -15,6 +15,7 @@ namespace AU_UAV_ROS{
         
         double FuzzyLogicOne(double in1, double in2);
 	double FuzzyLogicTwo(double distance, double angle);
+	double MFuzzyLogicTwo1(double collImminence, double collAngle, double oDist);
 	
 //	FuzzyLogicTwo(void);
 
