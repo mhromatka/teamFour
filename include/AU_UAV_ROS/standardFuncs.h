@@ -51,7 +51,6 @@ bool firstFuzzyEngine(double distanceToCollision, double overlapDistance);
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
 double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double relativeBearingAngle);
 */
-
 //This function will return the minimum distance to collision or the min(A,B)
 //does NOT work in three space yet, whatever.
 double getDistanceToCollision(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
@@ -63,14 +62,6 @@ AU_UAV_ROS::position getTwoPlanesIntersect(AU_UAV_ROS::PlanePose first, AU_UAV_R
 //This function will take two plane positions and find the difference in the distance away from the two's shared collision point. 
 //For example, if plane1 is 10 meters away from the collision point where plane1 and plane2 would crash and plane 2 is 15 meters away from the same collision point, this function returns 5 meters.
 double getOverlapDistance(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
-
-//Returns the angle at which two planes will collide at the collision point
-double getCollisionAngle(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
-
-
-//this function returns the distance of param "first" to the collision point based on 
-//heading and position stored in each PlanePose object
-double getPlaneDistToColl(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
 
 //This function will return XYZ coordinates for any waypoint
 //(usually used to find a plane's position)

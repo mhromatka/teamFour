@@ -267,13 +267,11 @@ void Test::FuzzyLogicTwo(){
             for (fl::flScalar in1 = 0.0; in1 < 80.0; in1 += 10.0){
                 distanceBetweenPlanes->setInput(in1);
                 bearingAngle->setInput(in2);
-               
+                ROS_INFO("HEre?");
                 engine2.process();
-                
+                ROS_INFO("3");
                 fl::flScalar out = changeHeading->output().defuzzify();
-		ROS_INFO("3");
-		sleep(2);                
-		ROS_INFO("4");
+                ROS_INFO("4");
                 (void)out; //Just to avoid warning when building
                 std::stringstream ss;
                 ss << "Dist BTWN Planes = " << in1 << "  Fuzzified= " << distanceBetweenPlanes->fuzzify(in1);
@@ -392,35 +390,16 @@ void Test::FuzzyLogicTwo(){
 
     void Test::main(int args, char** argv) {
 
-	ROS_INFO("starting MfuzzyControllerTwo1 in 2 seconds");
+	ROS_INFO("starting fuzzyController1 in 2 seconds");
 	ROS_INFO("======================================");
 	sleep(2);
-     	//for (fl::flScalar in2 = -50.0; in2 < 1.0; in2 += 5.0){
-		ROS_INFO("*****************************************");
-		fl::flScalar in1 = 8.0;
-		fl::flScalar in3 = 14.0;
-            for (fl::flScalar in2 = -150; in2 < 151.0; in2 += 20.0){       
-                fl::flScalar out = fl1.MFuzzyLogicTwo1(in1, in2, in3);
-                (void)out; //Just to avoid warning when building
-                std::stringstream ss;
-                ss << "CollImm = " << in1;
-                std::string s1(ss.str());
-                ROS_INFO(s1.c_str()); 
-                ss.str(std::string());//clear sstream
-                ss << "CollAngle = " << in2; 
-                std::string s2(ss.str());
-                ROS_INFO(s2.c_str());
-		ss.str(std::string());//clear sstream
-                ss << "Overlap = " << in3; 
-                std::string s4(ss.str());
-                ROS_INFO(s4.c_str());
-                ss.str(std::string());//clear sstream
-                ss << "Output = " << out ;
-                std::string s3(ss.str());
-                ROS_INFO(s3.c_str());
-		ROS_INFO("--");        
-            }
-      //  }
+	//AU_UAV_ROS::FuzzyLogicController fl1;
+	//fl::flScalar out = fl1.FuzzyLogicOne(15.0, 48.0);
+	//std::stringstream ss;
+        //ss << "Output= " << out;
+	////std::string s1(ss.str());
+        //ROS_INFO(s1.c_str()); 
+	FuzzyLogicTwo();	
 	ROS_INFO("======================================");
   
 /*
