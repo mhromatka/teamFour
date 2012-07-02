@@ -13,12 +13,15 @@ namespace AU_UAV_ROS{
         double planePoseY;
         double planePoseZ;
         double planePoseHeading;
+	double planePoseVelocity;
         
   	public:
         //default constructor
         PlanePose(void);
 
-        PlanePose(int planePoseID, double planePoseX, double planePoseY, double planePoseZ, double planePoseHeading);
+        PlanePose(int planePoseID, double planePoseX, double planePoseY, double planePoseZ, double planePoseHeading, double planePoseVelocity);
+
+        void setID(int id);
 
         void setX(double newX);
 
@@ -28,6 +31,14 @@ namespace AU_UAV_ROS{
 
         void setHeading(double newHeading);
 
+        void setVelocity(double newVelocity);
+
+        std::vector<position> dubinsPoints;
+
+        std::vector<waypoint> goalWaypoints;
+        
+        int getID();
+
         double getX();
         
         double getY();
@@ -35,6 +46,9 @@ namespace AU_UAV_ROS{
         double getZ();
         
         double getHeading();
+
+        double getVelocity();
+
         AU_UAV_ROS::position getPosition();
         
         void update(const AU_UAV_ROS::TelemetryUpdate &msg);

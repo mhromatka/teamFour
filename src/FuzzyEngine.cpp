@@ -189,6 +189,7 @@ namespace fl {
     }
 
     //RULES
+
     void FuzzyEngine::addRuleBlock(RuleBlock* ruleblock) {
         this->_rule_blocks.push_back(ruleblock);
     }

@@ -1,7 +1,7 @@
 #Auburn University ATTRACT Project - AU_UAV_ROS Sub-project
 #Randomly generated course file
 #Settings:
-#	Number of planes: 4
+#	Number of planes: 1
 #	Field size: 500 meters by 500 meters
 #	Waypoints per plane: 50
 #	North-west corner: (32.606573, -85.490356)
@@ -13,7 +13,7 @@
 
 
 #Plane ID: 0
-0		32.605854	-85.485862	400.000000
+#0		32.605854	-85.485862	400.000000
 0		32.604298	-85.488979	400.000000
 0		32.604702	-85.490057	400.000000
 0		32.604235	-85.486737	400.000000

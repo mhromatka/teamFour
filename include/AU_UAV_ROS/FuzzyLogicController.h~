@@ -12,7 +12,7 @@ namespace AU_UAV_ROS{
 	class FuzzyLogicController{
     private:
   	public:
-        //default constructor
+        
         double FuzzyLogicOne(double in1, double in2);
 	
 //	FuzzyLogicTwo(void);

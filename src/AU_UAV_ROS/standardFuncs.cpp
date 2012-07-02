@@ -10,15 +10,64 @@
 #include "AU_UAV_ROS/standardFuncs.h"
 #include "AU_UAV_ROS/standardDefs.h"
 #include "AU_UAV_ROS/PlanePose.h"
+#include "AU_UAV_ROS/FuzzyLogicController.h"
+#include "fuzzylite/FuzzyLite.h"
 #include <map>
 
 #define WEST_MOST_LONGITUDE -85.490356
 #define NORTH_MOST_LATITUDE 32.606573
 
-#define METERS_TO_LATITUDE (1.0/111200.0)
+#define METER_TO_LATITUDE (1.0/110897.21)
+#define METER_TO_LONGITUDE (1.0/93865.7257)
 
 #define DEGREES_TO_RADIANS (M_PI/180.0)
 #define RADIANS_TO_DEGREES (180.0/M_PI)
+
+double getCollisionAngle(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second){
+    AU_UAV_ROS::position collisionPoint = getTwoPlanesIntersect(first, second);
+    
+    //grab the (x, y, alt) values from each PlanePose object
+    AU_UAV_ROS::position planePose1 = first.getPosition();
+    AU_UAV_ROS::position planePose2 = second.getPosition();
+    
+    double distBtwnPlanes = getDist(planePose1, planePose2); //a
+    double otherPlaneDistToColl = getPlaneDistToColl(second, first); //b
+    double bearingAngle = getBearingAngle(first, second);//B
+    //use law of sines to find collision angle, angle at which planes will collide, = asin(a * (sin(B)/b))
+    double collAngle = asin(distBtwnPlanes * (sin(-bearingAngle)/otherPlaneDistToColl));
+    // CHANGE ABOVE BEARING ANGLE TO NON-NEG WHEN CHANGE BEARING ANGLE TO BE SAME ORIENTATION AS OTHER ANGLES
+    
+    
+    return collAngle;
+}
+
+
+//finds distance to collision for plane1
+double getPlaneDistToColl(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second){
+    AU_UAV_ROS::position collisionPoint = getTwoPlanesIntersect(first, second);
+    
+    AU_UAV_ROS::position planePose1 = first.getPosition();
+    double distance = sqrt(pow((collisionPoint.x_coordinate - planePose1.x_coordinate),2)+pow((collisionPoint.y_coordinate - planePose1.y_coordinate),2));
+    
+    
+    return distance;
+}
+
+//This function will take in the planeMap and the closest/current planes' IDs
+//and return the fuzzy parameters of distance to collision, distance between planes,
+//overlap distance, and bearing angle
+AU_UAV_ROS::fuzzyParams getFuzzyParams(AU_UAV_ROS::PlanePose* currentUAV, AU_UAV_ROS::PlanePose* closestUAV)
+{
+    AU_UAV_ROS::fuzzyParams fuzzyParams;
+    fuzzyParams.distanceToCollision = getDistanceToCollision(*currentUAV, *closestUAV);
+    fuzzyParams.overlapDistance = getOverlapDistance(*currentUAV, *closestUAV);
+    fuzzyParams.bearingAngle = getBearingAngle(*currentUAV, *closestUAV);
+    fuzzyParams.distBtwnPlanes = getDist(currentUAV->getPosition(), closestUAV->getPosition());
+
+	return fuzzyParams;
+}
+
+
 
 //This function is passed a heading value returned by our fuzzy logic engine
 //The function returns a waypoint to pass to the simulator
@@ -39,15 +88,13 @@ AU_UAV_ROS::waypoint getCAWaypoint(double fuzzyHeading, AU_UAV_ROS::position cur
 AU_UAV_ROS::waypoint convertPositionToWaypoint(AU_UAV_ROS::position position)
 {
     double deltaX = position.x_coordinate;
-    double deltaY = position.y_coordinate;
-    double altitude = position.altitude;
-    
+    double deltaY = position.y_coordinate;    
     AU_UAV_ROS::waypoint waypoint;
     
     //Take x and y and convert back to lat long
 
-    waypoint.longitude = WEST_MOST_LONGITUDE + (deltaX/93865.73571034615);
-    waypoint.latitude = NORTH_MOST_LATITUDE + (deltaY/110897.4592048873);
+    waypoint.longitude = WEST_MOST_LONGITUDE + (deltaX*METER_TO_LONGITUDE);
+    waypoint.latitude = NORTH_MOST_LATITUDE + (deltaY*METER_TO_LATITUDE);
     waypoint.altitude = position.altitude;
     
     return waypoint;
@@ -90,21 +137,10 @@ int getClosestPlane(int planeID, std::map<int,AU_UAV_ROS::PlanePose> planeMap)
 double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 {
     double dist = sqrt(pow((first.x_coordinate - second.x_coordinate),2)+pow((first.y_coordinate - second.y_coordinate),2)+pow((first.altitude - second.altitude),2));
+
+return dist;
 }
 
-//This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm
-bool firstFuzzyEngine(double distanceToCollision, double overlapDistance)
-{
-
-    return true;
-
-}
-
-//This function will take inputs of min(A,B), A-B, bearing angle and output the heading
-double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double bearingAngle)
-{
-    return 0.0;
-}
 
 //This function will return the minimum distance to collision or the min(A,B)
 //does NOT work in three space yet, whatever.
@@ -197,8 +233,8 @@ AU_UAV_ROS::position getXYZ(AU_UAV_ROS::waypoint planePose)
     
 	AU_UAV_ROS::position planeXYZ;
 
-	planeXYZ.x_coordinate = (eastwestpoint.longitude - origin.longitude)*93865.73571034615;//getActualDistance(origin,eastwestpoint);
-	planeXYZ.y_coordinate = (northsouthpoint.latitude - origin.latitude)*110897.4592048873;//-getActualDistance(origin,northsouthpoint);
+	planeXYZ.x_coordinate = (eastwestpoint.longitude - origin.longitude)/METER_TO_LONGITUDE;
+	planeXYZ.y_coordinate = (northsouthpoint.latitude - origin.latitude)/METER_TO_LATITUDE;
 
 	planeXYZ.altitude = planePose.altitude;
     
@@ -252,12 +288,8 @@ double getNewHeading(AU_UAV_ROS::position first, AU_UAV_ROS::position second)
 	double heading = atan2(deltaX,deltaY);
     
 	heading = (heading*RADIANS_TO_DEGREES);
+    heading = manipulateAngle(heading);
     
-	if (deltaX <= 0)
-	{
-		heading = -heading;
-	}
-
 	return heading;
 }
 

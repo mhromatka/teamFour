@@ -26,12 +26,12 @@ namespace fl {
 
     class Test {
     public:
+	static void FuzzyLogicOne();
+	static void FuzzyLogicTwo();
         static void SimpleMamdani();
         static void ComplexMamdani();
         static void SimpleTakagiSugeno();
         static void SimplePendulum();
-        static void FuzzyLogicOne();
-        static void FuzzyLogicTwo();
         static void main(int args, char** argv);
     };
 }

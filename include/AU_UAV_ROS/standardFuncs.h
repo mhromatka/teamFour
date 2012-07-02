@@ -10,10 +10,22 @@ IMPORTANT NOTE: All of the angles passed to the functions and returned from thes
 
 #include "AU_UAV_ROS/standardDefs.h" /* for EARTH_RADIUS in meters */
 #include "AU_UAV_ROS/PlanePose.h"
+#include "AU_UAV_ROS/FuzzyLogicController.h"
 #include <map>
 
 const double PI = 4*atan(1);
 const double DEGREE_TO_RAD = PI/180; /* convert degrees to radians */
+
+//Returns the angle at which two planes will collide at the collision point
+double getCollisionAngle(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
+
+//this function returns the distance of param "first" to the collision point based on
+//heading and position stored in each PlanePose object
+double getPlaneDistToColl(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
+
+//return all fuzzy parameters
+AU_UAV_ROS::fuzzyParams getFuzzyParams(AU_UAV_ROS::PlanePose* currentUAV, AU_UAV_ROS::PlanePose* closestUAV);
+
 
 //This function is passed a heading value returned by our fuzzy logic engine
 //The function returns a waypoint to pass to the simulator
@@ -30,12 +42,15 @@ int getClosestPlane(int planeID, std::map<int,AU_UAV_ROS::PlanePose> planeMap);
 //return distance (in meters) between two AU_UAV_ROS::position variables given in meters
 double getDist(AU_UAV_ROS::position first, AU_UAV_ROS::position second);
 
+
+/* these methods moved to collisionAvoidance.cpp
+
 //return a boolean value to decide whether to enter "Collision Avoidance" mode
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance);
 
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
 double secondFuzzyEngine(double distanceToCollision, double overlapDistance, double relativeBearingAngle);
-
+*/
 //This function will return the minimum distance to collision or the min(A,B)
 //does NOT work in three space yet, whatever.
 double getDistanceToCollision(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second);
