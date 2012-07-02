@@ -166,6 +166,35 @@ double getOverlapDistance(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose sec
     return overlapDistance;
 }
 
+double getCollisionAngle(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second){
+    AU_UAV_ROS::position collisionPoint = getTwoPlanesIntersect(first, second);
+    
+    //grab the (x, y, alt) values from each PlanePose object
+    AU_UAV_ROS::position planePose1 = first.getPosition();
+    AU_UAV_ROS::position planePose2 = second.getPosition();
+    
+    double distBtwnPlanes = getDist(planePose1, planePose2); //a
+    double otherPlaneDistToColl = getPlaneDistToColl(second, first); //b 
+    double bearingAngle = getBearingAngle(first, second);//B
+	//use law of sines to find collision angle, angle at which planes will collide, = asin(a * (sin(B)/b))
+	double collAngle = asin(distBtwnPlanes * (sin(-bearingAngle)/otherPlaneDistToColl));
+
+
+    return collAngle; 
+}
+
+
+//finds distance to collision for plane1
+double getPlaneDistToColl(AU_UAV_ROS::PlanePose first, AU_UAV_ROS::PlanePose second){
+    AU_UAV_ROS::position collisionPoint = getTwoPlanesIntersect(first, second);
+   
+    AU_UAV_ROS::position planePose1 = first.getPosition();    
+    double distance = sqrt(pow((collisionPoint.x_coordinate - planePose1.x_coordinate),2)+pow((collisionPoint.y_coordinate - planePose1.y_coordinate),2));
+ 	
+    
+    return distance; 
+}
+
 //This function will return XYZ coordinates for any waypoint
 //(usually used to find a plane's position)
 //(the same coordinates being published to the RVIZ simulator)

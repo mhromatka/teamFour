@@ -22,6 +22,7 @@ is already setup along with a dummy version of how the service request would wor
 #include "AU_UAV_ROS/FuzzyLogicController.h"
 #include "AU_UAV_ROS/dubins.h"
 
+<<<<<<< HEAD
 #define rho 15/(22.5*(M_PI/180.0)) //TODO-check if units are correct, this is currently in meters/radian
 #define TIMESTEP 1 
 #define UAV_AIRSPEED 11.176
@@ -29,6 +30,13 @@ is already setup along with a dummy version of how the service request would wor
 //collisionAvoidance does not have a header file, define methods here
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance, double distToWP, double distBtwnPlanes);
 double secondFuzzyEngine(double distBtwnPlanes, double bearingAngle);
+=======
+//collisionAvoidance does not have a header file, define methods here
+//bool firstFuzzyEngine(double distanceToCollision, double overlapDistance);
+//double secondFuzzyEngine(double distBtwnPlanes, double bearingAngle);//double distanceToCollision, double overlapDistance, double relativeBearingAngle);
+double firstFuzzyEngine(double distanceToCollision, double overlapDistance);
+double secondFuzzyEngine(double collImminence, double collAngle, double overlapDistance);//double distanceToCollision, double overlapDistance, double relativeBearingAngle);
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
 
 //ROS service client for calling a service from the coordinator
 ros::ServiceClient goToWaypointClient;
@@ -47,6 +55,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 	AU_UAV_ROS::PlanePose* currentUAV;
 
 
+<<<<<<< HEAD
 //store current Pose (LatLongAlt) in a waypoint struct
     	AU_UAV_ROS::waypoint planeLatLongAlt;
     	planeLatLongAlt.longitude = msg->currentLongitude;
@@ -55,6 +64,14 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 //store current Pose (meters X, Y, Z) in a position struct
     	AU_UAV_ROS::position currentPose = getXYZ(planeLatLongAlt);
 
+=======
+    planeLatLongAlt.longitude = msg->currentLongitude;
+    planeLatLongAlt.latitude = msg->currentLatitude;
+    planeLatLongAlt.altitude = msg->currentAltitude;
+    
+    //return current Pose in meters
+    AU_UAV_ROS::position currentPose = getXYZ(planeLatLongAlt);
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
 
 /*----------------------------------------------------------------------------------*/
 //This section stores a waypoint and position struct of where the current Plane would
@@ -68,6 +85,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
     	requestsrv.request.isAvoidanceWaypoint = false;
     	requestsrv.request.positionInQueue = 0;
     
+<<<<<<< HEAD
     	if(requestInfoClient.call(requestsrv))
     	{
         	//store response into nextWaypoint (lat/long/alt) and wouldBePose (X,Y,Z)
@@ -98,17 +116,54 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 	
         planeMap[msg->planeID] = currentUAV;
     	}
+=======
+	if(planeMap.count(msg->planeID)==0)
+    {
+        //ROS_INFO("Create a map for the very first time for %d", msg->planeID);
+
+    //ROS_INFO("currentPose for %d is:\n X = %f\n Y = %f\n Z = %f\n H = %f\n", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, newHeading);
+    
+   // ROS_INFO("Count during plane %d 's telem update is %d", msg->planeID, planeMap.count(msg->planeID));
+    }
+	if(planeMap.count(msg->planeID)==0)
+    {
+     //   ROS_INFO("Create a map for the very first time for %d", msg->planeID);
+
+        //create new PlanePose object with currentPose and 0.0 heading
+        AU_UAV_ROS::PlanePose newPlane(msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude, 0.0);// = new AU_UAV_ROS::PlanePose::PlanePose(msg->planeID, msg->currentLatitude, msg->currentLatitude, msg->currentAltitude, 0.0);
+        
+        //add the initial plane position to the map after the first telemetry update (with key = planeID)
+        planeMap [msg->planeID]=newPlane;
+    }
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
     
     //After initial planeMap creation, don't update planeMap until planes have been sent a new Waypoint
     else if (planeMap.count(msg->planeID)!=0 && msg->currentWaypointIndex == -1)
     {
+<<<<<<< HEAD
         //Don't do anything here!
+=======
+
+       // ROS_INFO("Don't do nothing.");
+
+        //break
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
     }
     
     //After initial update, we can now update things like newHeading during second time through
     //This should come after everything - no it shouldn't
     else
     {
+<<<<<<< HEAD
+=======
+
+        //ROS_INFO("PLANES\n HAVE\n BEEN\n SENT\n WAY\n POINTS!");
+        //ROS_INFO("PlanePose: \n X is %f \n Y is %f \n Z is %f \n Heading is %f", planeMap.find(msg->planeID)->second.getX(), planeMap.find(msg->planeID)->second.getY(), planeMap.find(msg->planeID)->second.getZ(), planeMap.find(msg->planeID)->second.getHeading());
+
+        //get new heading
+        //first parameter is the current plane's old position
+        //second parameter is the current plane's current position
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
         
         //Get the current Plane's heading by looking at the heading between the current Pose and Pose at last time step
 	AU_UAV_ROS::PlanePose* oldUAV;
@@ -123,11 +178,17 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 	currentUAV->setHeading(currentHeading);
 	currentUAV->setVelocity(11.176);
 
+<<<<<<< HEAD
+=======
+//	ROS_INFO("%d oldPose\n x = %f\n y = %f\n z = %f", msg->planeID, oldPose.x_coordinate, oldPose.y_coordinate, oldPose.altitude);
+ //       ROS_INFO("%d currentPose\n x = %f\n y = %f\n z = %f", msg->planeID, currentPose.x_coordinate, currentPose.y_coordinate, currentPose.altitude);
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
 
         
         //Find FUZZY LOGIC PARAMETERS FOR CLOSEST PLANE:    
         //get closest plane to current plane here ----> maybe change this function to get "most dangerous" plane
         int closestPlane = getClosestPlane(msg->planeID, planeMap);
+<<<<<<< HEAD
 	AU_UAV_ROS::PlanePose* closestUAV;
 	closestUAV = planeMap.find(closestPlane)->second;
 
@@ -140,17 +201,103 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         double bearingAngle = getBearingAngle(currentUAV, closestUAV);
         distBtwnPlanes = getDist(currentUAV, closestUAV);
         double distToWP = getDist(currentPose, wouldBePose);
+=======
+    
+        //get distanceToCollision
+        double distanceToCollision = getDistanceToCollision(planeMap.find(msg->planeID)->second, 
+                                                        planeMap.find(closestPlane)->second);
+    
+        //get overlapDistance
+        double overlapDistance = getOverlapDistance(planeMap.find(msg->planeID)->second, 
+                                                planeMap.find(closestPlane)->second);
+    
+        //get bearingAngle
+        double bearingAngle = getBearingAngle(planeMap.find(msg->planeID)->second, 
+                                          planeMap.find(closestPlane)->second);
+        
+	
+	double collisionAngle = getCollisionAngle(planeMap.find(msg->planeID)->second, 
+                                          planeMap.find(closestPlane)->second);
+	
+	AU_UAV_ROS::position planePose1 = planeMap.find(msg->planeID)->second.getPosition();
+    	AU_UAV_ROS::position planePose2 = planeMap.find(closestPlane)->second.getPosition();
+	double distBtwnPlanes = getDist(planePose1, planePose2);
+        
+    /*----------------------------------------------------------------------------------*/
+        
+        
+        //initialize waypoint to go (either a CA waypoint or normal waypoint, doesn't matter)
+        AU_UAV_ROS::waypoint nextWaypoint;
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
         
 /*----------------------------------------------------------------------------------*/
         //Decide to enter fuzzy logic??????
+<<<<<<< HEAD
         bool enterCA = firstFuzzyEngine(distanceToCollision, overlapDistance, distToWP, distBtwnPlanes);
         if (enterCA)
+=======
+        double enterCA = firstFuzzyEngine(distanceToCollision, overlapDistance);
+
+	if (enterCA > 0.35)
+        {
+            
+	//fuzzyHeading is just change in heading, so we need to add it to the currentHeading
+           // double fuzzyHeading = secondFuzzyEngine(distBtwnPlanes, bearingAngle)//distanceToCollision, overlapDistance, bearingAngle)
+               //                     + newHeading;
+		
+
+		double fuzzyHeading = secondFuzzyEngine(enterCA, collisionAngle, overlapDistance) + newHeading;
+
+		ROS_INFO("fuzzy heading= %f new heading = %f ", fuzzyHeading, newHeading);
+		ROS_INFO("position is= %f, %f " planePose1.x_coordinate, planePose1.y_coordinate); 
+            //	ROS_INFO("newHeading is %f", newHeading);
+
+     
+            //convert fuzzyHeading to a waypoint to send the plane here
+            //this should be in LatLongAlt
+            
+            nextWaypoint = getCAWaypoint(fuzzyHeading, currentPose);
+
+		//ROS_INFO("nextWaypoint is %f   %f    %f", nextWaypoint.latitude, nextWaypoint.longitude, nextWaypoint.altitude);
+
+            //nextWaypoint.latitude = 32.606573;
+            //nextWaypoint.longitude = -85.490356;
+            
+        }
+
+        //if CA avoidance is not initiated, just send the next goal waypoint
+        else
+        {
+            //send current waypoint here!
+            //explore using some other path planning here as well :P
+            AU_UAV_ROS::RequestWaypointInfo requestsrv;
+            requestsrv.request.planeID = msg->planeID;
+            requestsrv.request.isAvoidanceWaypoint = false;
+            requestsrv.request.positionInQueue = 0;
+            
+            if(requestInfoClient.call(requestsrv))
+            {
+
+               // ROS_INFO("Received response from service request %d", (count-1));
+
+                //store response into the next waypoint
+                nextWaypoint.latitude = requestsrv.response.latitude;
+                nextWaypoint.longitude = requestsrv.response.longitude;
+                nextWaypoint.altitude = requestsrv.response.altitude;
+            }
+            else
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
             {
                 //fuzzyHeading is just change in heading, so we need to add it to the wouldBeHeading
                 double fuzzyHeading = secondFuzzyEngine(distBtwnPlanes, bearingAngle) + wouldBeHeading;
 
+<<<<<<< HEAD
                 //convert fuzzyHeading into a waypoint for the current Plane to go to
                 nextWaypoint = getCAWaypoint(fuzzyHeading, currentPose);
+=======
+              //  ROS_ERROR("Did not receive response");
+
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
             }
 /*----------------------------------------------------------------------------------*/
 	//if vector is empty
@@ -170,7 +317,14 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
         
         if(goToWaypointClient.call(gotosrv))
         {
+<<<<<<< HEAD
             //ROS_INFO("Received response");
+=======
+
+           // ROS_INFO("Received response from service request %d", (count-1));
+
+            count++;
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
         }
         else
         {
@@ -190,7 +344,7 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
             myfile.close();
 }
 
-
+/*
 //This function will take inputs of min(A,B) and A-B and output true or false to enter the CA algorithm where A is the distance for the current plane to the collision point and B is the distance to collision point for the closest plane to current plane. 
 bool firstFuzzyEngine(double distanceToCollision, double overlapDistance, double distToWP, double distBtwnPlanes)
 {
@@ -220,16 +374,39 @@ bool firstFuzzyEngine(double distanceToCollision, double overlapDistance, double
 	return collisionPotential;
 
 }
+*/
 
+double firstFuzzyEngine(double distanceToCollision, double overlapDistance){
+	double output = fuzzy1.FuzzyLogicOne(distanceToCollision, overlapDistance);
+	//ROS_INFO("for dToColl= %f and overlap= %f", distanceToCollision, overlapDistance);
+
+	return output; 
+	
+}
+
+
+double secondFuzzyEngine(double collImminence, double collAngle, double overlapDistance){
+	double output = fuzzy1.MFuzzyLogicTwo1(collImminence, collAngle, overlapDistance); 
+
+	return output; 
+}
+
+
+/*
 //This function will take inputs of min(A,B), A-B, bearing angle and output the heading
 double secondFuzzyEngine(double distBtwnPlanes, double bearingAngle)//double distanceToCollision, double overlapDistance, double bearingAngle)
 {
 	double changeInHeading = fuzzy1.FuzzyLogicTwo(distBtwnPlanes, bearingAngle);
+<<<<<<< HEAD
 	//ROS_INFO("for distBtwnPlanes= %f and bearingAngle= %f ", distBtwnPlanes, bearingAngle); 	
 	//ROS_INFO("Change in heading: %f", changeInHeading);
+=======
+	ROS_INFO("for distBtwnPlanes= %f and bearingAngle= %f ", distBtwnPlanes, bearingAngle); 	
+	ROS_INFO("Change in heading: %f", changeInHeading);
+>>>>>>> 9d3afac02e4be9aacfa8de2af322d2d36d3cae27
     	return changeInHeading;
 }
-
+*/
 
 
 int main(int argc, char **argv)

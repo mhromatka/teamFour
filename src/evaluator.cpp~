@@ -22,7 +22,7 @@ functions on that data.
 #include "AU_UAV_ROS/SaveFlightData.h"
 
 //USER DEFINED EVALUATION SETTINGS
-#define TIME_LIMIT 600 //10 minutes
+#define TIME_LIMIT 60 //10 minutes
 #define WAYPOINT_SCORE 5 //5 points for each waypoint reached
 #define CONFLICT_SCORE -1 //-1 point for each conflict during flight
 
@@ -395,8 +395,8 @@ void telemetryCallback(const AU_UAV_ROS::TelemetryUpdate::ConstPtr& msg)
 				if(d < COLLISION_THRESHOLD)
 				{
 					//fire & death awaits these two planes...
-					planesToDelete.push(id);
-					planesToDelete.push(otherID);
+					//planesToDelete.push(id);
+					//planesToDelete.push(otherID);
 					
 					//increment our collision counter
 					numCollisions++;
